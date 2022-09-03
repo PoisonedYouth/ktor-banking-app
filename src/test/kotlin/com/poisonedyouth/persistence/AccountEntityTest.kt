@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-internal class UserEntityTest {
+internal class AccountEntityTest {
 
     private lateinit var databaseFactory: TestDatabaseFactory
 
@@ -26,94 +26,7 @@ internal class UserEntityTest {
     }
 
     @Test
-    fun `creating new user is possible`() {
-        // given + when
-        val persistedUser = transaction {
-            UserEntity.new {
-                userId = UUID.randomUUID()
-                firstName = "John"
-                lastName = "Doe"
-                birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
-                created = LocalDateTime.of(2022, 1, 1, 1, 9)
-                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
-            }
-        }
-
-        // then
-        assertThat(transaction { UserEntity.findById(persistedUser.id) }).isNotNull
-    }
-
-
-    @Test
-    fun `deleting user is possible`() {
-        // given
-        val persistedUser = transaction {
-            UserEntity.new {
-                userId = UUID.randomUUID()
-                firstName = "John"
-                lastName = "Doe"
-                birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
-                created = LocalDateTime.of(2022, 1, 1, 1, 9)
-                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
-            }
-        }
-
-        // when
-        transaction { persistedUser.delete() }
-
-        // then
-        assertThat(transaction { UserEntity.findById(persistedUser.id) }).isNull()
-    }
-
-    @Test
-    fun `edit user is possible`() {
-        // given
-        val persistedUser = transaction {
-            UserEntity.new {
-                userId = UUID.randomUUID()
-                firstName = "John"
-                lastName = "Doe"
-                birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
-                created = LocalDateTime.of(2022, 1, 1, 1, 9)
-                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
-            }
-        }
-
-        // when
-        transaction { persistedUser.firstName = "Max" }
-
-        // then
-        assertThat(transaction { UserEntity.findById(persistedUser.id)!!.firstName }).isEqualTo("Max")
-    }
-
-    @Test
-    fun `find user is possible`() {
-        // given
-        transaction {
-            UserEntity.new {
-                userId = UUID.randomUUID()
-                firstName = "John"
-                lastName = "Doe"
-                birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
-                created = LocalDateTime.of(2022, 1, 1, 1, 9)
-                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
-            }
-        }
-
-        // when
-        val actual = transaction { UserEntity.find { UserTable.firstName eq "John" }.first() }
-
-        // then
-        assertThat(actual).isNotNull
-        assertThat(transaction { actual.accounts.count()}).isZero
-    }
-
-    @Test
-    fun `find user also loads accounts`() {
+    fun `creating new account is possible`() {
         // given
         val user = transaction {
             UserEntity.new {
@@ -127,7 +40,40 @@ internal class UserEntityTest {
             }
         }
 
-        transaction {
+        // when
+        val persistedAccount = transaction {
+            AccountEntity.new {
+                name = "My Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        // then
+        assertThat(transaction { AccountEntity.findById(persistedAccount.id) }).isNotNull
+    }
+
+    @Test
+    fun `deleting account is possible`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val persistedAccount = transaction {
             AccountEntity.new {
                 name = "My Account"
                 accountId = UUID.randomUUID()
@@ -141,10 +87,80 @@ internal class UserEntityTest {
         }
 
         // when
-        val actual = transaction { UserEntity.find { UserTable.firstName eq "John" }.first() }
+        transaction { persistedAccount.delete() }
+
+        // then
+        assertThat(transaction { AccountEntity.findById(persistedAccount.id) }).isNull()
+        assertThat(transaction { UserEntity.findById(user.id) }).isNotNull
+    }
+
+    @Test
+    fun `updating account is possible`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val persistedAccount = transaction {
+            AccountEntity.new {
+                name = "My Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        // when
+        transaction { persistedAccount.balance = 333.0 }
+
+        // then
+        assertThat(transaction { AccountEntity.findById(persistedAccount.id)!!.balance }).isEqualTo(333.0)
+    }
+
+    @Test
+    fun `find account is possible`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val persistedAccount = transaction {
+            AccountEntity.new {
+                name = "My Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        // when
+        val actual = transaction { AccountEntity.find { AccountTable.accountId eq persistedAccount.accountId } }
 
         // then
         assertThat(actual).isNotNull
-        assertThat(transaction { actual.accounts.count()}).isEqualTo(1)
     }
 }

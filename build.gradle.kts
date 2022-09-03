@@ -34,8 +34,9 @@ dependencies {
     // exposed
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("com.zaxxer:HikariCP:5.10.0")
+    implementation("com.zaxxer:HikariCP:5.0.1")
 
     // h2
     implementation("com.h2database:h2:2.1.214")

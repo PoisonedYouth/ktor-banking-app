@@ -1,9 +1,7 @@
 package com.poisonedyouth
 
 import com.poisonedyouth.persistence.AccountTable
-import com.poisonedyouth.persistence.AdministratorTable
 import com.poisonedyouth.persistence.DatabaseFactory
-import com.poisonedyouth.persistence.TransactionTable
 import com.poisonedyouth.persistence.UserTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -40,7 +38,7 @@ object SchemaDefinition {
 
     fun createSchema() {
         transaction {
-            SchemaUtils.create(UserTable)
+            SchemaUtils.create(UserTable, AccountTable)
         }
     }
 }
