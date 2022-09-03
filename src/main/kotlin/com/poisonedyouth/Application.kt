@@ -1,6 +1,7 @@
 package com.poisonedyouth
 
 import com.poisonedyouth.configuration.setupApplicationConfiguration
+import com.poisonedyouth.persistence.migrateDatabaseSchema
 import com.poisonedyouth.persistence.setupDatabase
 import com.poisonedyouth.plugins.configureRouting
 import com.poisonedyouth.plugins.configureSecurity
@@ -13,7 +14,8 @@ fun main(args: Array<String>): Unit =
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
     val applicationConfiguration = setupApplicationConfiguration()
-    setupDatabase(applicationConfiguration)
+    val dataSource = setupDatabase(applicationConfiguration)
+    migrateDatabaseSchema(dataSource)
     configureSerialization()
     configureSecurity()
     configureRouting()

@@ -41,6 +41,10 @@ dependencies {
     // h2
     implementation("com.h2database:h2:2.1.214")
 
+    // liequibase
+    implementation("org.liquibase:liquibase-core:4.15.0")
+
+
     // testing
     testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")

@@ -137,6 +137,8 @@ internal class AccountEntityTest {
                 userId = UUID.randomUUID()
                 firstName = "John"
                 lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
                 created = LocalDateTime.of(2022, 1, 1, 1, 9)
                 lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
             }
