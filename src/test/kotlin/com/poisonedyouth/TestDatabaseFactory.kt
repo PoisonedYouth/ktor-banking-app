@@ -38,7 +38,7 @@ object SchemaDefinition {
 
     fun createSchema() {
         transaction {
-            SchemaUtils.create(UserTable, AccountTable)
+            SchemaUtils.create(UserTable, AccountTable, TransactionTable)
         }
     }
 }
