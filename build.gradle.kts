@@ -3,6 +3,7 @@ val kotlinVersion: String by project
 val logbackVersion: String by project
 val exposedVersion: String by project
 val junitVersion: String by project
+val koinVersion: String by project
 
 plugins {
     application
@@ -41,8 +42,12 @@ dependencies {
     // h2
     implementation("com.h2database:h2:2.1.214")
 
-    // liequibase
+    // liquibase
     implementation("org.liquibase:liquibase-core:4.15.0")
+
+    // koin
+    implementation("io.insert-koin:koin-ktor:$koinVersion")
+    implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
 
 
     // testing
@@ -50,6 +55,8 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testImplementation("org.assertj:assertj-core:3.23.1")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
+    testImplementation("io.insert-koin:koin-test:$koinVersion")
+    testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
 }
 
 tasks.test {
