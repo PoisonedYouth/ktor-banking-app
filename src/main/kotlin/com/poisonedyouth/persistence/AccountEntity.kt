@@ -30,5 +30,5 @@ object AccountTable : LongIdTable("account", "id") {
     val limit = double("limit")
     val created = datetime("created")
     val lastUpdated = datetime("last_updated")
-    val user = reference("user", UserTable)
+    val user = reference("user_id", UserTable)
 }

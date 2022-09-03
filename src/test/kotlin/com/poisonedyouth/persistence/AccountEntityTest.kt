@@ -130,6 +130,39 @@ internal class AccountEntityTest {
     }
 
     @Test
+    fun `delete user also set relation to account to null`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val persistedAccount = transaction {
+            AccountEntity.new {
+                name = "My Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        // when
+        transaction { user.delete()}
+
+        // then
+        assertThat(transaction { AccountEntity.findById(persistedAccount.id)}).isNotNull
+    }
+
+    @Test
     fun `find account is possible`() {
         // given
         val user = transaction {
@@ -219,8 +252,8 @@ internal class AccountEntityTest {
         val actual = transaction { AccountEntity.find { AccountTable.accountId eq account.accountId }.first() }
 
         // then
-        assertThat(transaction{ actual.originTransactions.count()}).isEqualTo(1)
-        assertThat(transaction{ actual.targetTransactions.count()}).isZero
+        assertThat(transaction { actual.originTransactions.count() }).isEqualTo(1)
+        assertThat(transaction { actual.targetTransactions.count() }).isZero
     }
 
     @Test
@@ -278,7 +311,7 @@ internal class AccountEntityTest {
         val actual = transaction { AccountEntity.find { AccountTable.accountId eq account.accountId }.first() }
 
         // then
-        assertThat(transaction{ actual.targetTransactions.count()}).isEqualTo(1)
-        assertThat(transaction{ actual.originTransactions.count()}).isZero
+        assertThat(transaction { actual.targetTransactions.count() }).isEqualTo(1)
+        assertThat(transaction { actual.originTransactions.count() }).isZero
     }
 }

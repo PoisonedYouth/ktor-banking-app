@@ -2,6 +2,7 @@ package com.poisonedyouth.persistence
 
 import com.poisonedyouth.TestDatabaseFactory
 import org.assertj.core.api.Assertions
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -195,6 +196,60 @@ internal class TransactionEntityTest {
         // then
         Assertions.assertThat(transaction { TransactionEntity.findById(persistedTransaction.id)!!.amount })
             .isEqualTo(200.0)
+    }
+
+    @Test
+    fun `deleting account is not possible when transactions are available`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val account1 = transaction {
+            AccountEntity.new {
+                name = "My First Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        val account2 = transaction {
+            AccountEntity.new {
+                name = "My Second Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        transaction {
+            TransactionEntity.new {
+                transactionId = UUID.randomUUID()
+                originEntity = account1
+                targetEntity = account2
+                amount = 123.0
+                created = LocalDateTime.of(2022, 1, 3, 2, 9)
+            }
+        }
+
+        // when + then
+        Assertions.assertThatThrownBy { transaction { account1.delete() } }
+            .isInstanceOf(ExposedSQLException::class.java)
     }
 
     @Test

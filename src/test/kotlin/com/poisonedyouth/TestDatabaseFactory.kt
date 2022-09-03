@@ -1,32 +1,34 @@
 package com.poisonedyouth
 
-import com.poisonedyouth.persistence.AccountTable
 import com.poisonedyouth.persistence.DatabaseFactory
-import com.poisonedyouth.persistence.UserTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import kotlin.random.Random
+import org.h2.tools.RunScript
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.transaction
+import java.nio.file.Files
+import java.nio.file.Paths
 
 class TestDatabaseFactory : DatabaseFactory {
 
     lateinit var source: HikariDataSource
 
     override fun connect() {
-        Database.connect(hikari())
-        SchemaDefinition.createSchema()
+        source = hikari()
+        SchemaDefinition.createSchema(source)
+        Database.connect(source)
     }
 
     private fun hikari(): HikariDataSource {
         val config = HikariConfig()
         config.driverClassName = "org.h2.Driver"
-        config.jdbcUrl = "jdbc:h2:mem:db"
-        config.maximumPoolSize = 10
+        config.jdbcUrl = "jdbc:h2:mem:db${Random.nextLong(10000, 99999)}"
+        config.username = "root"
+        config.password = "password"
+        config.maximumPoolSize = 2
         config.isAutoCommit = true
         config.validate()
-        source = HikariDataSource(config)
-        return source
+        return HikariDataSource(config)
     }
 
     fun close() {
@@ -36,9 +38,11 @@ class TestDatabaseFactory : DatabaseFactory {
 
 object SchemaDefinition {
 
-    fun createSchema() {
-        transaction {
-            SchemaUtils.create(UserTable, AccountTable, TransactionTable, AdministratorTable)
-        }
+    fun createSchema(dataSource: HikariDataSource) {
+        RunScript.execute(
+            dataSource.connection, Files.newBufferedReader(
+                Paths.get("src/main/resources/db/schema.sql")
+            )
+        )
     }
 }
