@@ -163,4 +163,122 @@ internal class AccountEntityTest {
         // then
         assertThat(actual).isNotNull
     }
+
+    @Test
+    fun `find account also loads origin transactions`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val account = transaction {
+            AccountEntity.new {
+                name = "My Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        val otherAccount = transaction {
+            AccountEntity.new {
+                name = "Other Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        transaction {
+            TransactionEntity.new {
+                transactionId = UUID.randomUUID()
+                amount = 100.0
+                originEntity = account
+                targetEntity = otherAccount
+                created = LocalDateTime.of(2022, 2, 2, 2, 9)
+            }
+        }
+
+        // when
+        val actual = transaction { AccountEntity.find { AccountTable.accountId eq account.accountId }.first() }
+
+        // then
+        assertThat(transaction{ actual.originTransactions.count()}).isEqualTo(1)
+        assertThat(transaction{ actual.targetTransactions.count()}).isZero
+    }
+
+    @Test
+    fun `find account also loads target transactions`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val account = transaction {
+            AccountEntity.new {
+                name = "My Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        val otherAccount = transaction {
+            AccountEntity.new {
+                name = "Other Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        transaction {
+            TransactionEntity.new {
+                transactionId = UUID.randomUUID()
+                amount = 100.0
+                originEntity = otherAccount
+                targetEntity = account
+                created = LocalDateTime.of(2022, 2, 2, 2, 9)
+            }
+        }
+
+        // when
+        val actual = transaction { AccountEntity.find { AccountTable.accountId eq account.accountId }.first() }
+
+        // then
+        assertThat(transaction{ actual.targetTransactions.count()}).isEqualTo(1)
+        assertThat(transaction{ actual.originTransactions.count()}).isZero
+    }
 }
