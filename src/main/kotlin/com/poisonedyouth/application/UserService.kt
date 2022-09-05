@@ -14,6 +14,8 @@ interface UserService {
     fun createUser(userDto: UserDto): ApiResult<UUID>
 
     fun deleteUser(userId: String?): ApiResult<UUID>
+
+    fun updateUser(userDto: UserDto): ApiResult<UUID>
 }
 
 private const val BIRTH_DATE_FORMAT = "dd.MM.yyyy"
@@ -58,7 +60,7 @@ class UserServiceImpl(
         val user = User(
             firstName = this.firstName,
             lastName = this.lastName,
-            birthdate = parseBirthdate(this.birthDate),
+            birthdate = parseBirthdate(this.birthdate),
             password = this.password
         )
         if (this.userId != null) {
@@ -100,6 +102,28 @@ class UserServiceImpl(
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
         }
     }
+
+    override fun updateUser(userDto: UserDto): ApiResult<UUID> {
+        logger.info("Start updating user '$userDto'")
+        val user = try {
+            userDto.toUser()
+        } catch (e: InvalidInputException) {
+            logger.error("Unable to map given dto '$userDto' to domain object.", e)
+            return ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                e.message ?: "Undefined error during mapping occurred."
+            )
+        }
+        return try {
+            userRepository.save(user)
+            logger.info("Successfully updated user '$user'.")
+            ApiResult.Success(user.userId)
+        } catch (e: Exception) {
+            logger.error("Unable to update user '$userDto' to database.", e)
+            ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.message ?: "Undefined error during persistence occurred.")
+        }
+    }
+
 }
 
 fun Exception.getErrorMessage(): String {

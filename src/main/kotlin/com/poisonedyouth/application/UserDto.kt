@@ -6,6 +6,6 @@ data class UserDto(
     val userId: UUID? = null,
     val firstName: String,
     val lastName: String,
-    val birthDate: String,
+    val birthdate: String,
     val password: String
 )

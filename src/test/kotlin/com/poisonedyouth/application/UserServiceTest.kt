@@ -4,23 +4,22 @@ import com.poisonedyouth.TestDatabaseFactory
 import com.poisonedyouth.application.ApiResult.Failure
 import com.poisonedyouth.application.ApiResult.Success
 import com.poisonedyouth.dependencyinjection.bankingAppModule
-import com.poisonedyouth.domain.User
+import com.poisonedyouth.persistence.UserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.junit5.KoinTestExtension
-import java.time.LocalDate
 import java.util.*
 
 internal class UserServiceTest : KoinTest {
 
     private lateinit var databaseFactory: TestDatabaseFactory
     private val userService by inject<UserService>()
+    private val userRepository by inject<UserRepository>()
 
     @JvmField
     @RegisterExtension
@@ -48,7 +47,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.1999",
+            birthdate = "20.02.1999",
             password = "Ta1&tudol3lal54e"
         )
 
@@ -66,7 +65,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.1999",
+            birthdate = "20.02.1999",
             password = "Ta1&tudol3lal54e"
         )
         userService.createUser(user)
@@ -87,7 +86,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20-02-1999",
+            birthdate = "20-02-1999",
             password = "password"
         )
 
@@ -105,7 +104,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.2019",
+            birthdate = "20.02.2019",
             password = "password"
         )
 
@@ -123,7 +122,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.2000",
+            birthdate = "20.02.2000",
             password = "password"
         )
 
@@ -141,7 +140,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.2000",
+            birthdate = "20.02.2000",
             password = "TTTTTTTTTTTTTTTT"
         )
 
@@ -159,7 +158,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.2000",
+            birthdate = "20.02.2000",
             password = "tttttttttttttttt"
         )
 
@@ -177,7 +176,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.2000",
+            birthdate = "20.02.2000",
             password = "Atttttttttttttttt"
         )
 
@@ -195,7 +194,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.2000",
+            birthdate = "20.02.2000",
             password = "Attttttttttttttt1"
         )
 
@@ -213,7 +212,7 @@ internal class UserServiceTest : KoinTest {
         val user = UserDto(
             firstName = "John",
             lastName = "Doe",
-            birthDate = "20.02.1999",
+            birthdate = "20.02.1999",
             password = "Ta1&tudol3lal54e"
         )
         val apiResult = userService.createUser(user)
@@ -251,5 +250,62 @@ internal class UserServiceTest : KoinTest {
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
+    fun `update existing user is possible`() {
+        // given
+        val user = UserDto(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = "20.02.1999",
+            password = "Ta1&tudol3lal54e"
+        )
+        val apiResult = userService.createUser(user)
+
+        // when
+        val actual = userService.updateUser(
+            user.copy(
+                userId = (apiResult as Success).value,
+                firstName = "Max",
+                lastName = "DeMarco"
+            )
+        )
+
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isEqualTo(apiResult.value)
+        assertThat(userRepository.findByUserId(apiResult.value)!!.firstName).isEqualTo("Max")
+        assertThat(userRepository.findByUserId(apiResult.value)!!.lastName).isEqualTo("DeMarco")
+    }
+
+    @Test
+    fun `update user fails if password does not fulfill requirement`() {
+        // given
+        val user = UserDto(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = "20.02.1999",
+            password = "Ta1&tudol3lal54e"
+        )
+        val apiResult = userService.createUser(user)
+
+        // when
+        val actual = userService.updateUser(
+            user.copy(
+                userId = (apiResult as Success).value,
+                firstName = "Max",
+                lastName = "DeMarco",
+                password = "NOT VALID"
+            )
+        )
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+        assertThat(userRepository.findByUserId(apiResult.value)!!.firstName).isEqualTo("John")
+        assertThat(userRepository.findByUserId(apiResult.value)!!.lastName).isEqualTo("Doe")
     }
 }
