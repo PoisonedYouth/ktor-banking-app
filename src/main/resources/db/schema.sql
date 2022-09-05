@@ -13,7 +13,7 @@ CREATE TABLE `account`
 (
     `id`           LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
     `name`         VARCHAR(255)                    NOT NULL,
-    `account_id`   UUID                            NOT NULL,
+    `account_id`   UUID UNIQUE                     NOT NULL,
     `balance`      DOUBLE                          NOT NULL,
     `dispo`        DOUBLE                          NOT NULL,
     `limit`        DOUBLE                          NOT NULL,
@@ -26,12 +26,12 @@ CREATE TABLE `transaction`
 (
     `id`             LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
     `transaction_id` UUID                            NOT NULL,
-    `origin`         LONG                            NOT NULL,
-    `target`         LONG                            NOT NULL,
+    `origin`         UUID                            NOT NULL,
+    `target`         UUID                            NOT NULL,
     `amount`         LONG                            NOT NULL,
     `created`        DATETIME                        NOT NULL,
-    FOREIGN KEY (`origin`) REFERENCES `account` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
-    FOREIGN KEY (`target`) REFERENCES `account` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+    FOREIGN KEY (`origin`) REFERENCES `account` (`account_id`) ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (`target`) REFERENCES `account` (`account_id`) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 CREATE TABLE `administrator`
 (
