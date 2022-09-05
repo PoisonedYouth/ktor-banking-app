@@ -308,4 +308,51 @@ internal class UserServiceTest : KoinTest {
         assertThat(userRepository.findByUserId(apiResult.value)!!.firstName).isEqualTo("John")
         assertThat(userRepository.findByUserId(apiResult.value)!!.lastName).isEqualTo("Doe")
     }
+
+    @Test
+    fun  `findUserBy is possible`(){
+        // given
+        val user = UserDto(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = "20.02.1999",
+            password = "Ta1&tudol3lal54e"
+        )
+        val apiResult = userService.createUser(user)
+
+        // when
+        val actual = userService.findUserByUserId((apiResult as Success).value)
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        (actual as Success).value.apply {
+            assertThat(this.userId).isEqualByComparingTo(apiResult.value)
+            assertThat(this.firstName).isEqualTo("John")
+            assertThat(this.lastName).isEqualTo("Doe")
+            assertThat(this.birthdate).isEqualTo("20.02.1999")
+            assertThat(this.password).isEqualTo("Ta1&tudol3lal54e")
+            assertThat(this.created).isNotBlank
+            assertThat(this.lastUpdated).isNotBlank
+            assertThat(this.account).isEmpty()
+        }
+    }
+
+    @Test
+    fun  `findUserBy fails if user not available in database`(){
+        // given
+        val user = UserDto(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = "20.02.1999",
+            password = "Ta1&tudol3lal54e"
+        )
+        userService.createUser(user)
+
+        // when
+        val actual = userService.findUserByUserId(UUID.randomUUID())
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
 }

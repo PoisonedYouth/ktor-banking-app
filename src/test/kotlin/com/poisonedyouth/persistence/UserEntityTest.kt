@@ -48,7 +48,7 @@ internal class UserEntityTest {
     @Test
     fun `creating new user is not possible with duplicate firstname, password and birthdate`() {
         // given + when
-        val persistedUser = transaction {
+       transaction {
             UserEntity.new {
                 userId = UUID.randomUUID()
                 firstName = "John"

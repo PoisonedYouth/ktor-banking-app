@@ -1,5 +1,6 @@
 package com.poisonedyouth.application
 
+import com.poisonedyouth.domain.Account
 import com.poisonedyouth.domain.User
 import com.poisonedyouth.persistence.UserRepository
 import org.slf4j.Logger
@@ -16,9 +17,12 @@ interface UserService {
     fun deleteUser(userId: String?): ApiResult<UUID>
 
     fun updateUser(userDto: UserDto): ApiResult<UUID>
+
+    fun findUserByUserId(userId: UUID): ApiResult<UserOverviewDto>
 }
 
 private const val BIRTH_DATE_FORMAT = "dd.MM.yyyy"
+private const val TIME_STAMP_FORMAT = "dd.MM.yyyy HH:mm:ss"
 
 class UserServiceImpl(
     private val userRepository: UserRepository
@@ -123,7 +127,45 @@ class UserServiceImpl(
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.message ?: "Undefined error during persistence occurred.")
         }
     }
+    override fun findUserByUserId(userId: UUID): ApiResult<UserOverviewDto> {
+        logger.info("Start finding user with userId '$userId'")
+        return try {
+            val user = userRepository.findByUserId(userId)
+            if (user == null) {
+                ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+            } else {
+                ApiResult.Success(user.toUserOverviewDto())
+            }
+        } catch (e: Exception) {
+            logger.error("Unable to find user with userId '$userId' from database.'", e)
+            ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                e.message ?: "Undefined error during finding user in database occurred."
+            )
 
+        }
+    }
+
+    private fun User.toUserOverviewDto() = UserOverviewDto(
+        userId = this.userId,
+        firstName = this.firstName,
+        lastName = this.lastName,
+        birthdate = this.birthdate.format(DateTimeFormatter.ofPattern(BIRTH_DATE_FORMAT)),
+        password = this.password,
+        created = this.created.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
+        lastUpdated = this.lastUpdated.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
+        account = this.accounts.map { it.toAccountOverviewDto() }
+    )
+
+    private fun Account.toAccountOverviewDto() = AccountOverviewDto(
+        name = this.name,
+        accountId = this.accountId,
+        balance = this.balance,
+        dispo = this.dispo,
+        limit = this.limit,
+        created = this.created.toString(),
+        lastUpdated = this.lastUpdated.toString()
+    )
 }
 
 fun Exception.getErrorMessage(): String {
