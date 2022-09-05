@@ -30,4 +30,7 @@ object UserTable : LongIdTable("user", "id") {
     val password = varchar("password", DEFAULT_VARCHAR_COLUMN_LENGTH)
     val created = datetime("created")
     val lastUpdated = datetime("last_updated")
+    init {
+        uniqueIndex(firstName, lastName, password)
+    }
 }

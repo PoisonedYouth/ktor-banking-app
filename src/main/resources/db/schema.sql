@@ -7,7 +7,8 @@ CREATE TABLE `user`
     `birthdate`    DATE                            NOT NULL,
     `password`     VARCHAR(255)                    NOT NULL,
     `created`      DATETIME                        NOT NULL,
-    `last_updated` DATETIME                        NOT NULL
+    `last_updated` DATETIME                        NOT NULL,
+    CONSTRAINT `unique_user` UNIQUE (`first_name`, `last_name`, `birthdate`)
 );
 CREATE TABLE `account`
 (

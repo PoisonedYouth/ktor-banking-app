@@ -52,3 +52,6 @@ ALTER TABLE `transaction` ADD UNIQUE (`transaction_id`);
 
 -- changeset  liquibase:3
 ALTER TABLE `account` ADD CONSTRAINT `account_name` UNIQUE  (`name`, `user_id`);
+
+-- changeset liquibase:4
+ALTER TABLE `user` ADD CONSTRAINT `unique_user` UNIQUE (`first_name`, `last_name`, `birthdate`);

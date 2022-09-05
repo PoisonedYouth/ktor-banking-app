@@ -29,4 +29,7 @@ object AccountTable : LongIdTable("account", "id") {
     val created = datetime("created")
     val lastUpdated = datetime("last_updated")
     val user = reference("user_id", UserTable).nullable()
+    init {
+        uniqueIndex(name, user)
+    }
 }

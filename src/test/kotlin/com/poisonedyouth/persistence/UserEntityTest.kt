@@ -46,6 +46,37 @@ internal class UserEntityTest {
     }
 
     @Test
+    fun `creating new user is not possible with duplicate firstname, password and birthdate`() {
+        // given + when
+        val persistedUser = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        // when + then
+        assertThatThrownBy {
+            transaction {
+                UserEntity.new {
+                    userId = UUID.randomUUID()
+                    firstName = "John"
+                    lastName = "Doe"
+                    birthdate = LocalDate.of(2000, 1, 1)
+                    password = "passw0rd"
+                    created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                    lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+                }
+            }
+        }
+    }
+
+    @Test
     fun `creating new user is not possible with duplicate userId`() {
         // given + when
         val persistedUser = transaction {
@@ -67,13 +98,14 @@ internal class UserEntityTest {
                     userId = persistedUser.userId
                     firstName = "John"
                     lastName = "Doe"
+                    birthdate = LocalDate.of(2000, 1, 1)
+                    password = "passw0rd"
                     created = LocalDateTime.of(2022, 1, 1, 1, 9)
                     lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
                 }
             }
         }
     }
-
 
     @Test
     fun `deleting user is possible`() {
