@@ -1,5 +1,7 @@
 package com.poisonedyouth.dependencyinjection
 
+import com.poisonedyouth.application.UserService
+import com.poisonedyouth.application.UserServiceImpl
 import com.poisonedyouth.persistence.AccountRepository
 import com.poisonedyouth.persistence.AccountRepositoryImpl
 import com.poisonedyouth.persistence.TransactionRepository
@@ -16,6 +18,7 @@ val bankingAppModule = module {
     single<UserRepository> { UserRepositoryImpl() }
     single<AccountRepository> { AccountRepositoryImpl() }
     single<TransactionRepository> { TransactionRepositoryImpl() }
+    single<UserService> { UserServiceImpl(get()) }
 }
 
 fun Application.setupKoin() {
