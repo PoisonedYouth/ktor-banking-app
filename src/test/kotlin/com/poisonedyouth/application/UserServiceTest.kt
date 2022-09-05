@@ -4,6 +4,7 @@ import com.poisonedyouth.TestDatabaseFactory
 import com.poisonedyouth.application.ApiResult.Failure
 import com.poisonedyouth.application.ApiResult.Success
 import com.poisonedyouth.dependencyinjection.bankingAppModule
+import com.poisonedyouth.domain.User
 import com.poisonedyouth.persistence.UserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.junit5.KoinTestExtension
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 internal class UserServiceTest : KoinTest {
@@ -209,21 +212,21 @@ internal class UserServiceTest : KoinTest {
     @Test
     fun `delete existing user is possible`() {
         // given
-        val user = UserDto(
+        val user = User(
             firstName = "John",
             lastName = "Doe",
-            birthdate = "20.02.1999",
+            birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val apiResult = userService.createUser(user)
-        val userId = (apiResult as Success).value
+
+        val persistedUser = userRepository.save(user)
 
         // when
-        val actual = userService.deleteUser(userId.toString())
+        val actual = userService.deleteUser(persistedUser.userId.toString())
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
-        assertThat((actual as Success).value).isEqualTo(userId)
+        assertThat((actual as Success).value).isEqualTo(persistedUser.userId)
     }
 
     @Test
@@ -255,48 +258,51 @@ internal class UserServiceTest : KoinTest {
     @Test
     fun `update existing user is possible`() {
         // given
-        val user = UserDto(
+        val user = User(
             firstName = "John",
             lastName = "Doe",
-            birthdate = "20.02.1999",
+            birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val apiResult = userService.createUser(user)
+        val persistedUser = userRepository.save(user)
 
         // when
         val actual = userService.updateUser(
-            user.copy(
-                userId = (apiResult as Success).value,
+            UserDto(
+                userId = persistedUser.userId,
                 firstName = "Max",
-                lastName = "DeMarco"
+                lastName = "DeMarco",
+                birthdate = user.birthdate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                password = user.password
             )
         )
 
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
-        assertThat((actual as Success).value).isEqualTo(apiResult.value)
-        assertThat(userRepository.findByUserId(apiResult.value)!!.firstName).isEqualTo("Max")
-        assertThat(userRepository.findByUserId(apiResult.value)!!.lastName).isEqualTo("DeMarco")
+        assertThat((actual as Success).value).isEqualTo(persistedUser.userId)
+        assertThat(userRepository.findByUserId(persistedUser.userId)!!.firstName).isEqualTo("Max")
+        assertThat(userRepository.findByUserId(persistedUser.userId)!!.lastName).isEqualTo("DeMarco")
     }
 
     @Test
     fun `update user fails if password does not fulfill requirement`() {
         // given
-        val user = UserDto(
+        val user = User(
             firstName = "John",
             lastName = "Doe",
-            birthdate = "20.02.1999",
+            birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val apiResult = userService.createUser(user)
+        val persistedUser = userRepository.save(user)
 
         // when
         val actual = userService.updateUser(
-            user.copy(
-                userId = (apiResult as Success).value,
+            UserDto(
+                userId = persistedUser.userId,
                 firstName = "Max",
                 lastName = "DeMarco",
+                birthdate = user.birthdate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
                 password = "NOT VALID"
             )
         )
@@ -305,31 +311,31 @@ internal class UserServiceTest : KoinTest {
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
-        assertThat(userRepository.findByUserId(apiResult.value)!!.firstName).isEqualTo("John")
-        assertThat(userRepository.findByUserId(apiResult.value)!!.lastName).isEqualTo("Doe")
+        assertThat(userRepository.findByUserId(persistedUser.userId)!!.firstName).isEqualTo("John")
+        assertThat(userRepository.findByUserId(persistedUser.userId)!!.lastName).isEqualTo("Doe")
     }
 
     @Test
-    fun  `findUserBy is possible`(){
+    fun `findUserBy is possible`() {
         // given
-        val user = UserDto(
+        val user = User(
             firstName = "John",
             lastName = "Doe",
-            birthdate = "20.02.1999",
+            birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val apiResult = userService.createUser(user)
+        val persistedUser = userRepository.save(user)
 
         // when
-        val actual = userService.findUserByUserId((apiResult as Success).value)
+        val actual = userService.findUserByUserId(persistedUser.userId)
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
         (actual as Success).value.apply {
-            assertThat(this.userId).isEqualByComparingTo(apiResult.value)
+            assertThat(this.userId).isEqualByComparingTo(persistedUser.userId)
             assertThat(this.firstName).isEqualTo("John")
             assertThat(this.lastName).isEqualTo("Doe")
-            assertThat(this.birthdate).isEqualTo("20.02.1999")
+            assertThat(this.birthdate).isEqualTo("01.01.1999")
             assertThat(this.password).isEqualTo("Ta1&tudol3lal54e")
             assertThat(this.created).isNotBlank
             assertThat(this.lastUpdated).isNotBlank
@@ -338,15 +344,15 @@ internal class UserServiceTest : KoinTest {
     }
 
     @Test
-    fun  `findUserBy fails if user not available in database`(){
+    fun `findUserBy fails if user not available in database`() {
         // given
-        val user = UserDto(
+        val user = User(
             firstName = "John",
             lastName = "Doe",
-            birthdate = "20.02.1999",
+            birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        userService.createUser(user)
+        userRepository.save(user)
 
         // when
         val actual = userService.findUserByUserId(UUID.randomUUID())
@@ -354,5 +360,85 @@ internal class UserServiceTest : KoinTest {
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun `updatePassword is possible for existing user`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when
+        val actual = userService.updatePassword(persistedUser.userId, persistedUser.password, "Ta1&zuxcv3lal54e")
+
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isNotNull
+    }
+
+    @Test
+    fun `updatePassword fails for none existing user`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when
+        val actual = userService.updatePassword(UUID.randomUUID(), persistedUser.password, "Ta1&zuxcv3lal54e")
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun `updatePassword fails if existing password and new password are equal`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when
+        val actual = userService.updatePassword(persistedUser.userId, persistedUser.password, "Ta1&tudol3lal54e")
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.PASSWORD_ERROR)
+    }
+
+    @Test
+    fun `updatePassword fails if new password does not fulfill the requirements`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when
+        val actual = userService.updatePassword(persistedUser.userId, persistedUser.password, "NOT VALID")
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.PASSWORD_ERROR)
     }
 }
