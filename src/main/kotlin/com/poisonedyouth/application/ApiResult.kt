@@ -6,6 +6,7 @@ sealed class ApiResult<out T> {
 }
 
 enum class ErrorCode {
-    PERSISTENCE_ERROR,
-    MAPPING_ERROR
+    DATABASE_ERROR,
+    MAPPING_ERROR,
+    USER_NOT_FOUND,
 }

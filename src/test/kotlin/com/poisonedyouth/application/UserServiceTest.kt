@@ -4,6 +4,7 @@ import com.poisonedyouth.TestDatabaseFactory
 import com.poisonedyouth.application.ApiResult.Failure
 import com.poisonedyouth.application.ApiResult.Success
 import com.poisonedyouth.dependencyinjection.bankingAppModule
+import com.poisonedyouth.domain.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.junit5.KoinTestExtension
+import java.time.LocalDate
+import java.util.*
 
 internal class UserServiceTest : KoinTest {
 
@@ -74,7 +77,7 @@ internal class UserServiceTest : KoinTest {
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
-        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.PERSISTENCE_ERROR)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.DATABASE_ERROR)
     }
 
 
@@ -198,6 +201,52 @@ internal class UserServiceTest : KoinTest {
 
         // when
         val actual = userService.createUser(user)
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
+    fun `delete existing user is possible`() {
+        // given
+        val user = UserDto(
+            firstName = "John",
+            lastName = "Doe",
+            birthDate = "20.02.1999",
+            password = "Ta1&tudol3lal54e"
+        )
+        val apiResult = userService.createUser(user)
+        val userId = (apiResult as Success).value
+
+        // when
+        val actual = userService.deleteUser(userId.toString())
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isEqualTo(userId)
+    }
+
+    @Test
+    fun `delete is not possible because user does not exist`() {
+        // given
+        val userId = UUID.randomUUID()
+
+        // when
+        val actual = userService.deleteUser(userId.toString())
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun `delete is not possible because userId is not valid`() {
+        // given
+        val userId = "invalid_userId"
+
+        // when
+        val actual = userService.deleteUser(userId)
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
