@@ -20,6 +20,7 @@ CREATE TABLE `account`
     `created`      DATETIME                        NOT NULL,
     `last_updated` DATETIME                        NOT NULL,
     `user_id`      LONG,
+    CONSTRAINT `account_name` UNIQUE (`name`, `user_id`),
     FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON UPDATE cascade ON DELETE SET NULL
 );
 CREATE TABLE `transaction`

@@ -49,3 +49,6 @@ CREATE TABLE `administrator`
 ALTER TABLE `user` ADD UNIQUE (`user_id`);
 ALTER TABLE `account` ADD UNIQUE (`account_id`);
 ALTER TABLE `transaction` ADD UNIQUE (`transaction_id`);
+
+-- changeset  liquibase:3
+ALTER TABLE `account` ADD CONSTRAINT `account_name` UNIQUE  (`name`, `user_id`);

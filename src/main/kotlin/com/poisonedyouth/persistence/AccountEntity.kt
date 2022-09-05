@@ -21,7 +21,7 @@ class AccountEntity(id: EntityID<Long>) : LongEntity(id) {
 }
 
 object AccountTable : LongIdTable("account", "id") {
-    val name = varchar("name", DEFAULT_VARCHAR_COLUMN_LENGTH)
+    val name = varchar("name", DEFAULT_VARCHAR_COLUMN_LENGTH).uniqueIndex("account_name")
     val accountId = uuid("account_id").uniqueIndex()
     val balance = double("balance")
     val dispo = double("dispo")
