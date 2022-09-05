@@ -76,7 +76,7 @@ internal class AdministratorEntityTest {
     @Test
     fun `find an administrator is possible`() {
         // given
-        val persistedAdministrator = transaction {
+        transaction {
             AdministratorEntity.new {
                 adminId = UUID.randomUUID()
                 name = "Admin"
