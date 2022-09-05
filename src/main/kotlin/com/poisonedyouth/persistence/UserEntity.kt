@@ -31,6 +31,6 @@ object UserTable : LongIdTable("user", "id") {
     val created = datetime("created")
     val lastUpdated = datetime("last_updated")
     init {
-        uniqueIndex(firstName, lastName, password)
+        uniqueIndex("unique_user", firstName, lastName, birthdate)
     }
 }

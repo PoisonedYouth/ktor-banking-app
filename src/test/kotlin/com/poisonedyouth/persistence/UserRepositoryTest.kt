@@ -6,6 +6,8 @@ import com.poisonedyouth.domain.User
 import io.ktor.util.reflect.instanceOf
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -51,7 +53,7 @@ internal class UserRepositoryTest : KoinTest {
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(2000, 1, 1),
-            password = "passw0rd",
+            password = "Ta1&tudol3lal54e",
             created = LocalDateTime.of(
                 2022, 1, 1, 1, 0, 0
             ),
@@ -68,6 +70,34 @@ internal class UserRepositoryTest : KoinTest {
     }
 
     @Test
+    fun `save fails if user with firstname, lastname and birthdate already exists`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            created = LocalDateTime.of(
+                2022, 1, 1, 1, 0, 0
+            ),
+            lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
+            accounts = listOf()
+        )
+        val actual = userRepository.save(user)
+
+        // when + then
+        assertThatThrownBy {
+            userRepository.save(
+                user.copy(
+                    userId = UUID.randomUUID()
+                )
+            )
+        }.isInstanceOf(ExposedSQLException::class.java)
+    }
+
+
+    @Test
     fun `save updates existing user to database`() {
         // given
         val user = User(
@@ -75,7 +105,7 @@ internal class UserRepositoryTest : KoinTest {
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(2000, 1, 1),
-            password = "passw0rd",
+            password = "Ta1&tudol3lal54e",
             created = LocalDateTime.of(2022, 1, 1, 1, 0, 0),
             lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
             accounts = listOf()
@@ -103,7 +133,7 @@ internal class UserRepositoryTest : KoinTest {
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(2000, 1, 1),
-            password = "passw0rd",
+            password = "Ta1&tudol3lal54e",
             created = LocalDateTime.of(2022, 1, 1, 1, 0, 0),
             lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
             accounts = listOf()
@@ -125,7 +155,7 @@ internal class UserRepositoryTest : KoinTest {
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(2000, 1, 1),
-            password = "passw0rd",
+            password = "Ta1&tudol3lal54e",
             created = LocalDateTime.of(2022, 1, 1, 1, 0, 0),
             lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
             accounts = listOf()
@@ -143,7 +173,7 @@ internal class UserRepositoryTest : KoinTest {
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(2000, 1, 1),
-            password = "passw0rd",
+            password = "Ta1&tudol3lal54e",
             created = LocalDateTime.of(2022, 1, 1, 1, 0, 0),
             lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
             accounts = listOf()
@@ -161,7 +191,7 @@ internal class UserRepositoryTest : KoinTest {
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(2000, 1, 1),
-            password = "passw0rd",
+            password = "Ta1&tudol3lal54e",
             created = LocalDateTime.of(2022, 1, 1, 1, 0, 0),
             lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
             accounts = listOf()
