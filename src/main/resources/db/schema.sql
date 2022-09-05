@@ -1,7 +1,7 @@
 CREATE TABLE `user`
 (
     `id`           LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
-    `user_id`      UUID                            NOT NULL,
+    `user_id`      UUID UNIQUE                     NOT NULL,
     `first_name`   VARCHAR(255)                    NOT NULL,
     `last_name`    VARCHAR(255)                    NOT NULL,
     `birthdate`    DATE                            NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE `account`
 CREATE TABLE `transaction`
 (
     `id`             LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
-    `transaction_id` UUID                            NOT NULL,
+    `transaction_id` UUID UNIQUE                     NOT NULL,
     `origin`         UUID                            NOT NULL,
     `target`         UUID                            NOT NULL,
     `amount`         LONG                            NOT NULL,

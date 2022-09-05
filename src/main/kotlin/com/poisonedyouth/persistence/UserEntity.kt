@@ -23,7 +23,7 @@ class UserEntity(id: EntityID<Long>) : LongEntity(id) {
 }
 
 object UserTable : LongIdTable("user", "id") {
-    val userId = uuid("user_id")
+    val userId = uuid("user_id").uniqueIndex()
     val firstName = varchar("first_name", DEFAULT_VARCHAR_COLUMN_LENGTH)
     val lastName = varchar("last_name", DEFAULT_VARCHAR_COLUMN_LENGTH)
     val birthdate = date("birthdate")

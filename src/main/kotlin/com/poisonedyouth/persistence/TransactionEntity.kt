@@ -17,7 +17,7 @@ class TransactionEntity(id: EntityID<Long>) : LongEntity(id) {
 }
 
 object TransactionTable : LongIdTable("transaction", "id") {
-    val transactionId = uuid("transaction_id")
+    val transactionId = uuid("transaction_id").uniqueIndex()
     val origin = reference("origin", AccountTable.accountId)
     val target = reference("target", AccountTable.accountId)
     val amount = double("amount")

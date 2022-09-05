@@ -2,6 +2,7 @@ package com.poisonedyouth.persistence
 
 import com.poisonedyouth.TestDatabaseFactory
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -42,6 +43,35 @@ internal class UserEntityTest {
 
         // then
         assertThat(transaction { UserEntity.findById(persistedUser.id) }).isNotNull
+    }
+
+    @Test
+    fun `creating new user is not possible with duplicate userId`() {
+        // given + when
+        val persistedUser = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        // when + then
+        assertThatThrownBy {
+            transaction {
+                UserEntity.new {
+                    userId = persistedUser.userId
+                    firstName = "John"
+                    lastName = "Doe"
+                    created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                    lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+                }
+            }
+        }
     }
 
 
@@ -109,7 +139,7 @@ internal class UserEntityTest {
 
         // then
         assertThat(actual).isNotNull
-        assertThat(transaction { actual.accounts.count()}).isZero
+        assertThat(transaction { actual.accounts.count() }).isZero
     }
 
     @Test
@@ -145,6 +175,6 @@ internal class UserEntityTest {
 
         // then
         assertThat(actual).isNotNull
-        assertThat(transaction { actual.accounts.count()}).isEqualTo(1)
+        assertThat(transaction { actual.accounts.count() }).isEqualTo(1)
     }
 }

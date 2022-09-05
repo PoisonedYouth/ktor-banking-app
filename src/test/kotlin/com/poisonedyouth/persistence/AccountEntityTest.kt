@@ -2,6 +2,7 @@ package com.poisonedyouth.persistence
 
 import com.poisonedyouth.TestDatabaseFactory
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -56,6 +57,51 @@ internal class AccountEntityTest {
 
         // then
         assertThat(transaction { AccountEntity.findById(persistedAccount.id) }).isNotNull
+    }
+
+    @Test
+    fun `creating new account is not possible with duplicate accountId`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val persistedAccount = transaction {
+            AccountEntity.new {
+                name = "My Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        // when + then
+        assertThatThrownBy {
+            transaction {
+                AccountEntity.new {
+                    name = "My Account"
+                    accountId = persistedAccount.accountId
+                    balance = 120.0
+                    dispo = -100.0
+                    limit = 100.0
+                    created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                    lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                    userEntity = user
+                }
+            }
+        }
     }
 
     @Test

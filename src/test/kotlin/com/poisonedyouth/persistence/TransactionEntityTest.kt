@@ -82,6 +82,71 @@ internal class TransactionEntityTest {
     }
 
     @Test
+    fun `creating new transaction is not possible with duplicate transactionId`() {
+        // given
+        val user = transaction {
+            UserEntity.new {
+                userId = UUID.randomUUID()
+                firstName = "John"
+                lastName = "Doe"
+                birthdate = LocalDate.of(2000, 1, 1)
+                password = "passw0rd"
+                created = LocalDateTime.of(2022, 1, 1, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
+            }
+        }
+
+        val account1 = transaction {
+            AccountEntity.new {
+                name = "My First Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        val account2 = transaction {
+            AccountEntity.new {
+                name = "My Second Account"
+                accountId = UUID.randomUUID()
+                balance = 120.0
+                dispo = -100.0
+                limit = 100.0
+                created = LocalDateTime.of(2022, 1, 2, 1, 9)
+                lastUpdated = LocalDateTime.of(2022, 1, 2, 2, 9)
+                userEntity = user
+            }
+        }
+
+        val persistedTransaction = transaction {
+            TransactionEntity.new {
+                transactionId = UUID.randomUUID()
+                originEntity = account1
+                targetEntity = account2
+                amount = 123.0
+                created = LocalDateTime.of(2022, 1, 3, 2, 9)
+            }
+        }
+
+        // when + then
+        Assertions.assertThatThrownBy {
+            transaction {
+                TransactionEntity.new {
+                    transactionId = persistedTransaction.transactionId
+                    originEntity = account1
+                    targetEntity = account2
+                    amount = 123.0
+                    created = LocalDateTime.of(2022, 1, 3, 2, 9)
+                }
+            }
+        }
+    }
+
+    @Test
     fun `deleting transaction is possible`() {
         // given
         val user = transaction {
