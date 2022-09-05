@@ -14,9 +14,7 @@ class AccountEntity(id: EntityID<Long>) : LongEntity(id) {
     var limit by AccountTable.limit
     var created by AccountTable.created
     var lastUpdated by AccountTable.lastUpdated
-    var userEntity by UserEntity referencedOn AccountTable.user
-    val originTransactions by TransactionEntity referrersOn TransactionTable.origin
-    val targetTransactions by TransactionEntity referrersOn TransactionTable.target
+    var userEntity by UserEntity optionalReferencedOn AccountTable.user
 
     companion object : LongEntityClass<AccountEntity>(AccountTable)
 
@@ -30,5 +28,5 @@ object AccountTable : LongIdTable("account", "id") {
     val limit = double("limit")
     val created = datetime("created")
     val lastUpdated = datetime("last_updated")
-    val user = reference("user_id", UserTable)
+    val user = reference("user_id", UserTable).nullable()
 }

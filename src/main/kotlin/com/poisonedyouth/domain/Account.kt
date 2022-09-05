@@ -11,5 +11,4 @@ data class Account(
     val limit: Double,
     val created: LocalDateTime = LocalDateTime.now(),
     val lastUpdated: LocalDateTime = LocalDateTime.now(),
-    val user: User
 )

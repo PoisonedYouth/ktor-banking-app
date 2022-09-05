@@ -83,16 +83,16 @@ internal class UserRepositoryTest : KoinTest {
         val actual = userRepository.save(user)
 
         // when
-        userRepository.save(
+        val updatedUser = userRepository.save(
             actual.copy(
                 firstName = "Max"
             )
         )
 
         // then
-        assertThat(actual).isNotNull
+        assertThat(updatedUser).isNotNull
         assertThat(transaction { UserEntity.all().count() }).isEqualTo(1)
-        assertThat(transaction { UserEntity.findById(actual.id)!!.firstName }).isEqualTo("Max")
+        assertThat(transaction { UserEntity.find { UserTable.userId eq actual.userId }.single().firstName }).isEqualTo("Max")
     }
 
     @Test
@@ -114,7 +114,7 @@ internal class UserRepositoryTest : KoinTest {
         userRepository.delete(userNew)
 
         // then
-        assertThat(transaction { UserEntity.findById(userNew.id) }).isNull()
+        assertThat(transaction { UserEntity.find { UserTable.userId eq user.userId }.singleOrNull() }).isNull()
     }
 
     @Test
@@ -139,7 +139,6 @@ internal class UserRepositoryTest : KoinTest {
     fun `delete throws exception if try to delete user with not existing id`() {
         // given
         val user = User(
-            id = 12L,
             userId = UUID.randomUUID(),
             firstName = "John",
             lastName = "Doe",
@@ -175,17 +174,18 @@ internal class UserRepositoryTest : KoinTest {
         // then
         assertThat(actual).isNotNull
         actual?.run {
-            assertThat(this.id).isEqualTo(userNew.id)
             assertThat(this.userId).isEqualTo(userNew.userId)
             assertThat(this.firstName).isEqualTo(userNew.firstName)
             assertThat(this.lastName).isEqualTo(userNew.lastName)
             assertThat(this.created.toEpochSecond(ZoneOffset.UTC)).isEqualTo(
-                userNew.created.toEpochSecond(ZoneOffset.UTC))
+                userNew.created.toEpochSecond(ZoneOffset.UTC)
+            )
             assertThat(this.lastUpdated.toEpochSecond(ZoneOffset.UTC)).isEqualTo(
                 userNew.lastUpdated.toEpochSecond(
                     ZoneOffset.UTC
                 )
             )
+            assertThat(this.accounts).isEmpty()
         }
     }
 }

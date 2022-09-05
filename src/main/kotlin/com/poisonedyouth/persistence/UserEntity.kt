@@ -17,7 +17,7 @@ class UserEntity(id: EntityID<Long>) : LongEntity(id) {
     var password by UserTable.password
     var created by UserTable.created
     var lastUpdated by UserTable.lastUpdated
-    val accounts by AccountEntity referrersOn AccountTable.user
+    val accounts by AccountEntity optionalReferrersOn  AccountTable.user
 
     companion object : LongEntityClass<UserEntity>(UserTable)
 }

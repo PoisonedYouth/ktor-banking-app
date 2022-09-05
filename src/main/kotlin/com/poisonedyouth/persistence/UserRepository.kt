@@ -19,7 +19,7 @@ class UserRepositoryImpl : UserRepository {
         val currentDateTime = LocalDateTime.now()
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
         if (existingUser == null) {
-            val id = UserEntity.new {
+            val userEntity = UserEntity.new {
                 userId = user.userId
                 firstName = user.firstName
                 lastName = user.lastName
@@ -27,7 +27,7 @@ class UserRepositoryImpl : UserRepository {
                 password = user.password
                 created = currentDateTime
                 lastUpdated = currentDateTime
-            }.id
+            }
             user.copy(
                 created = currentDateTime,
                 lastUpdated = currentDateTime
@@ -38,6 +38,7 @@ class UserRepositoryImpl : UserRepository {
             existingUser.lastName = user.lastName
             existingUser.birthdate = user.birthdate
             existingUser.password = user.password
+            existingUser.created = user.created
             existingUser.lastUpdated = currentDateTime
             user.copy(
                 lastUpdated = currentDateTime
@@ -46,9 +47,9 @@ class UserRepositoryImpl : UserRepository {
     }
 
     override fun delete(user: User): Unit = transaction {
-        UserEntity.findById(user.id).let {
+        UserEntity.find { UserTable.userId eq user.userId }.firstOrNull().let {
             if (it == null) {
-                error("User '$user' does not exist!")
+                error("User '${user.userId}' does not exist!")
             } else {
                 it.delete()
             }
@@ -56,18 +57,16 @@ class UserRepositoryImpl : UserRepository {
     }
 
     override fun findByUserId(userId: UUID): User? = transaction {
-        UserEntity.find { UserTable.userId eq userId }.firstOrNull()?.let {
-            User(
-                id = it.id.value,
-                userId = it.userId,
-                firstName = it.firstName,
-                lastName = it.lastName,
-                birthdate = it.birthdate,
-                password = it.password,
-                created = it.created,
-                lastUpdated = it.lastUpdated,
-                accounts = listOf()
-            )
-        }
+        UserEntity.find { UserTable.userId eq userId }.firstOrNull()?.toUser()
     }
 }
+
+fun UserEntity.toUser() = User(
+    userId = this.userId,
+    firstName = this.firstName,
+    lastName = this.lastName,
+    birthdate = this.birthdate,
+    password = this.password, created = this.created,
+    lastUpdated = this.lastUpdated,
+    accounts = this.accounts.map { it.toAccount() }
+)
