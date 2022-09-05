@@ -8,7 +8,7 @@ import java.util.*
 interface UserRepository {
     fun save(user: User): User
 
-    fun delete(user: User): Unit
+    fun delete(user: User)
 
     fun findByUserId(userId: UUID): User?
 }
@@ -19,7 +19,7 @@ class UserRepositoryImpl : UserRepository {
         val currentDateTime = LocalDateTime.now()
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
         if (existingUser == null) {
-            val userEntity = UserEntity.new {
+           UserEntity.new {
                 userId = user.userId
                 firstName = user.firstName
                 lastName = user.lastName
@@ -28,6 +28,7 @@ class UserRepositoryImpl : UserRepository {
                 created = currentDateTime
                 lastUpdated = currentDateTime
             }
+
             user.copy(
                 created = currentDateTime,
                 lastUpdated = currentDateTime

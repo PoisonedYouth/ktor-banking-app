@@ -28,7 +28,7 @@ class DefaultDatabaseFactory(appConfig: ApplicationConfiguration) : DatabaseFact
         config.username = dbConfig.user
         config.password = dbConfig.password
         config.maximumPoolSize = dbConfig.maxPoolSize
-        config.isAutoCommit = false
+        config.isAutoCommit = true
         config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         config.validate()
         return HikariDataSource(config)

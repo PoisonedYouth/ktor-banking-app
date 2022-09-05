@@ -6,7 +6,6 @@ import com.poisonedyouth.domain.User
 import io.ktor.util.reflect.instanceOf
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
@@ -84,7 +83,7 @@ internal class UserRepositoryTest : KoinTest {
             lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
             accounts = listOf()
         )
-        val actual = userRepository.save(user)
+        userRepository.save(user)
 
         // when + then
         assertThatThrownBy {

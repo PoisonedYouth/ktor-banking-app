@@ -1,6 +1,6 @@
 package com.poisonedyouth.application
 
-import java.util.UUID
+import java.util.*
 
 data class UserDto(
     val userId: UUID? = null,
