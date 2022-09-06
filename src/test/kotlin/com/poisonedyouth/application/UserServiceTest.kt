@@ -354,7 +354,7 @@ internal class UserServiceTest : KoinTest {
         val persistedUser = userRepository.save(user)
 
         // when
-        val actual = userService.findUserByUserId(persistedUser.userId)
+        val actual = userService.findUserBy(persistedUser.userId.toString())
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
@@ -371,6 +371,25 @@ internal class UserServiceTest : KoinTest {
     }
 
     @Test
+    fun `findUserBy fails if userId is invalid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        userRepository.save(user)
+
+        // when
+        val actual = userService.findUserBy("invalid userId")
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
     fun `findUserBy fails if user not available in database`() {
         // given
         val user = User(
@@ -382,7 +401,7 @@ internal class UserServiceTest : KoinTest {
         userRepository.save(user)
 
         // when
-        val actual = userService.findUserByUserId(UUID.randomUUID())
+        val actual = userService.findUserBy(UUID.randomUUID().toString())
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)

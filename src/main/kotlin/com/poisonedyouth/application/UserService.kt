@@ -13,13 +13,9 @@ import java.util.*
 interface UserService {
 
     fun createUser(userDto: UserDto): ApiResult<UUID>
-
     fun deleteUser(userId: String?): ApiResult<UUID>
-
     fun updateUser(userDto: UserDto): ApiResult<UUID>
-
-    fun findUserByUserId(userId: UUID): ApiResult<UserOverviewDto>
-
+    fun findUserBy(userId: String?): ApiResult<UserOverviewDto>
     fun updatePassword(userId: UUID, existingPassword: String, newPassword: String): ApiResult<UUID>
 }
 
@@ -136,10 +132,16 @@ class UserServiceImpl(
         }
     }
 
-    override fun findUserByUserId(userId: UUID): ApiResult<UserOverviewDto> {
-        logger.info("Start finding user with userId '$userId'")
+    override fun findUserBy(userId: String?): ApiResult<UserOverviewDto> {
+        logger.info("Start finding user with userId '$userId'.")
         return try {
-            val user = userRepository.findByUserId(userId)
+            val userIdResolved = try {
+                UUID.fromString(userId)
+            } catch (e: IllegalArgumentException) {
+                logger.error("Given userId '$userId' is not valid.", e)
+                return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+            }
+            val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
                 logger.error("User with userId '$userId' not found.")
                 ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
