@@ -63,7 +63,7 @@ internal class AccountServiceTest : KoinTest {
         )
 
         // when
-        val actual = accountService.createAccount(userId = persistedUser.userId, accountDto = account)
+        val actual = accountService.createAccount(userId = persistedUser.userId.toString(), accountDto = account)
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
@@ -87,7 +87,7 @@ internal class AccountServiceTest : KoinTest {
         )
 
         // when
-        val actual = accountService.createAccount(userId = user.userId, accountDto = account)
+        val actual = accountService.createAccount(userId = user.userId.toString(), accountDto = account)
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -112,7 +112,32 @@ internal class AccountServiceTest : KoinTest {
         )
 
         // when
-        val actual = accountService.createAccount(userId = persistedUser.userId, accountDto = account)
+        val actual = accountService.createAccount(userId = persistedUser.userId.toString(), accountDto = account)
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
+    fun `createAccount fails if userId is invalid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = AccountDto(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+
+        // when
+        val actual = accountService.createAccount(userId = "invalid userId", accountDto = account)
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -139,7 +164,7 @@ internal class AccountServiceTest : KoinTest {
 
         // when
         val actual = accountService.createAccount(
-            userId = persistedUser.userId, accountDto = AccountDto(
+            userId = persistedUser.userId.toString(), accountDto = AccountDto(
                 accountId = persistedAccount.accountId,
                 name = "My Other Account",
                 dispo = persistedAccount.dispo,
@@ -172,7 +197,7 @@ internal class AccountServiceTest : KoinTest {
 
         // when
         val actual = accountService.createAccount(
-            userId = persistedUser.userId, accountDto = AccountDto(
+            userId = persistedUser.userId.toString(), accountDto = AccountDto(
                 name = persistedAccount.name,
                 dispo = persistedAccount.dispo,
                 limit = persistedAccount.limit

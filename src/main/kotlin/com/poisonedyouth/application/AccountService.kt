@@ -9,8 +9,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 interface AccountService {
-    fun createAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
-
+    fun createAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID>
     fun updateAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
     fun deleteAccount(userId: UUID, accountId: UUID): ApiResult<UUID>
 }
@@ -21,9 +20,15 @@ class AccountServiceImpl(
 ) : AccountService {
     private val logger: Logger = LoggerFactory.getLogger(AccountService::class.java)
 
-    override fun createAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID> {
+    override fun createAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start creation of account '$accountDto' for user with userId '$userId'.")
-        val user = userRepository.findByUserId(userId)
+        val userIdResolved = try {
+            UUID.fromString(userId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+        }
+        val user = userRepository.findByUserId(userIdResolved)
         if (user == null) {
             logger.error("User with userId '$userId' not found.")
             return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
