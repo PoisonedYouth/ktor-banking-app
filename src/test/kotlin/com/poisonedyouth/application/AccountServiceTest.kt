@@ -19,6 +19,7 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.koin.test.junit5.KoinTestExtension
 import java.time.LocalDate
+import java.util.*
 
 internal class AccountServiceTest : KoinTest {
     private lateinit var databaseFactory: TestDatabaseFactory
@@ -149,7 +150,7 @@ internal class AccountServiceTest : KoinTest {
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
-        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.DATABASE_ERROR)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_ALREADY_EXIST)
     }
 
     @Test
@@ -180,5 +181,97 @@ internal class AccountServiceTest : KoinTest {
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.DATABASE_ERROR)
+    }
+
+    @Test
+    fun `updateAccount is possible`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        val persistedAccount =  accountRepository.saveForUser(user = persistedUser, account = account)
+
+        // when
+        val actual = accountService.updateAccount(userId = persistedUser.userId, accountDto = AccountDto(
+            accountId = persistedAccount.accountId,
+            name = "Other Account",
+            dispo = persistedAccount.dispo,
+            limit = persistedAccount.limit
+        ))
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isEqualTo(persistedAccount.accountId)
+        assertThat(accountRepository.findByAccountId(persistedAccount.accountId)!!.name).isEqualTo("Other Account")
+    }
+
+    @Test
+    fun `updateAccount fails if user does not exist in database`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        val persistedAccount =  accountRepository.saveForUser(user = persistedUser, account = account)
+
+        // when
+        val actual = accountService.updateAccount(userId = UUID.randomUUID(), accountDto = AccountDto(
+            accountId = persistedAccount.accountId,
+            name = "Other Account",
+            dispo = persistedAccount.dispo,
+            limit = persistedAccount.limit
+        ))
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun `updateAccount fails if account not exist in database`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        // when
+        val actual = accountService.updateAccount(userId = user.userId, accountDto = AccountDto(
+            accountId = account.accountId,
+            name = "Other Account",
+            dispo = account.dispo,
+            limit = account.limit
+        ))
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
     }
 }

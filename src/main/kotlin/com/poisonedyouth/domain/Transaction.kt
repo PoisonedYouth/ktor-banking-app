@@ -1,6 +1,7 @@
 package com.poisonedyouth.domain
 
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 data class Transaction(
@@ -8,5 +9,5 @@ data class Transaction(
     val origin: Account,
     val target: Account,
     val amount: Double,
-    val created: LocalDateTime = LocalDateTime.now()
+    val created: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
 )

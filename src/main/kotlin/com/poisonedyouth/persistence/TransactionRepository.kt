@@ -5,6 +5,7 @@ import com.poisonedyouth.domain.Transaction
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 interface TransactionRepository {
     fun save(transaction: Transaction): Transaction
@@ -15,7 +16,7 @@ interface TransactionRepository {
 
 class TransactionRepositoryImpl : TransactionRepository {
     override fun save(transaction: Transaction): Transaction = transaction {
-        val currentDateTime = LocalDateTime.now()
+        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
         val existingTransaction =
             TransactionEntity.find { TransactionTable.transactionId eq transaction.transactionId }.firstOrNull()
         if (existingTransaction == null) {

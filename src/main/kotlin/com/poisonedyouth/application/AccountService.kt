@@ -10,6 +10,8 @@ import java.util.*
 interface AccountService {
 
     fun createAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
+
+    fun updateAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
 }
 
 class AccountServiceImpl(
@@ -35,10 +37,17 @@ class AccountServiceImpl(
             )
         }
         return try {
-            val persistedAccount = accountRepository.saveForUser(user = user, account = account)
-            logger.info("Successfully created account '$persistedAccount' for user with userId '$userId'.")
-            ApiResult.Success(persistedAccount.accountId)
-
+            if (accountRepository.findByAccountId(account.accountId) != null) {
+                logger.info("Account with accountId '${account.accountId}' already exist in database.")
+                ApiResult.Failure(
+                    ErrorCode.ACCOUNT_ALREADY_EXIST,
+                    "Account with accountId '${account.accountId}' already exist in database."
+                )
+            } else {
+                val persistedAccount = accountRepository.saveForUser(user = user, account = account)
+                logger.info("Successfully created account '$persistedAccount' for user with userId '$userId'.")
+                ApiResult.Success(persistedAccount.accountId)
+            }
         } catch (e: Exception) {
             logger.error("Unable to create account '$accountDto' in database.", e)
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
@@ -62,4 +71,35 @@ class AccountServiceImpl(
         throw InvalidInputException("Given AccountDto '$this' is not valid.", e)
     }
 
+    override fun updateAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID> {
+        logger.info("Start update of account '$accountDto' for user with userId '$userId'.")
+        val user = userRepository.findByUserId(userId)
+        if (user == null) {
+            logger.error("User with userId '$userId' not found.")
+            return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+        }
+        if (accountDto.accountId == null || accountRepository.findByAccountId(accountDto.accountId) == null) {
+            return ApiResult.Failure(
+                ErrorCode.ACCOUNT_NOT_FOUND,
+                "Account with accountId '${accountDto.accountId}' does not exist in database."
+            )
+        }
+        val account = try {
+            accountDto.toAccount()
+        } catch (e: InvalidInputException) {
+            logger.error("Unable to map given dto '$accountDto' to domain object.", e)
+            return ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                e.getErrorMessage()
+            )
+        }
+        return try {
+            val updatedAccount = accountRepository.updateForUser(user = user, account = account)
+            logger.info("Successfully updated account '$updatedAccount'.")
+            ApiResult.Success(updatedAccount.accountId)
+        } catch (e: Exception) {
+            logger.error("Unable to update account '$accountDto' to database.", e)
+            ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
+        }
+    }
 }

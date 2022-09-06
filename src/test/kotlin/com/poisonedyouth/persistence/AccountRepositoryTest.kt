@@ -273,4 +273,62 @@ class AccountRepositoryTest : KoinTest {
             accountRepository.delete(account)
         }.isInstanceOf(IllegalStateException::class.java)
     }
+
+    @Test
+    fun `findByAccountId returns matching account`(){
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+
+        // when
+        val actual = accountRepository.findByAccountId(persistedAccount.accountId)
+
+        // then
+        assertThat(actual).isEqualTo(persistedAccount)
+    }
+
+    @Test
+    fun `findByAccountId returns null for no matching account`(){
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+
+        // when
+        val actual = accountRepository.findByAccountId(persistedAccount.accountId)
+
+        // then
+        assertThat(actual).isEqualTo(persistedAccount)
+    }
 }

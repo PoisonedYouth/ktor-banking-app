@@ -2,6 +2,7 @@ package com.poisonedyouth.domain
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 private const val MINIMUM_PASSWORD_LENGTH = 16
@@ -14,8 +15,8 @@ data class User(
     val lastName: String,
     val birthdate: LocalDate,
     val password: String,
-    val created: LocalDateTime = LocalDateTime.now(),
-    val lastUpdated: LocalDateTime = LocalDateTime.now(),
+    val created: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
+    val lastUpdated: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
     val accounts: List<Account> = emptyList()
 ) {
     init {

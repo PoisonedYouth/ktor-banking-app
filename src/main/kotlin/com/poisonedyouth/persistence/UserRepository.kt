@@ -3,6 +3,7 @@ package com.poisonedyouth.persistence
 import com.poisonedyouth.domain.User
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 interface UserRepository {
@@ -16,7 +17,7 @@ interface UserRepository {
 class UserRepositoryImpl : UserRepository {
 
     override fun save(user: User): User = transaction {
-        val currentDateTime = LocalDateTime.now()
+        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
         if (existingUser == null) {
            UserEntity.new {
@@ -67,7 +68,7 @@ fun UserEntity.toUser() = User(
     firstName = this.firstName,
     lastName = this.lastName,
     birthdate = this.birthdate,
-    password = this.password, created = this.created,
-    lastUpdated = this.lastUpdated,
+    password = this.password, created = this.created.truncatedTo(ChronoUnit.SECONDS),
+    lastUpdated = this.lastUpdated.truncatedTo(ChronoUnit.SECONDS),
     accounts = this.accounts.map { it.toAccount() }
 )

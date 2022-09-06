@@ -4,6 +4,7 @@ import com.poisonedyouth.domain.Account
 import com.poisonedyouth.domain.User
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 interface AccountRepository {
@@ -13,6 +14,8 @@ interface AccountRepository {
     fun updateForUser(user: User, account: Account): Account
 
     fun delete(account: Account)
+
+    fun findByAccountId(accountId: UUID): Account?
 }
 
 class AccountRepositoryImpl : AccountRepository {
@@ -20,8 +23,8 @@ class AccountRepositoryImpl : AccountRepository {
     override fun saveForUser(user: User, account: Account) = transaction {
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
             ?: error("User with userId '${user.userId}' not persisted yet!")
-        val currentDateTime = LocalDateTime.now()
-        val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.singleOrNull()
+        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+        val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
         if (existingAccount == null) {
             AccountEntity.new {
                 accountId = account.accountId
@@ -39,7 +42,7 @@ class AccountRepositoryImpl : AccountRepository {
                 lastUpdated = currentDateTime
             )
         } else {
-            error("User with userId '${user.userId} already exists.")
+            error("Account with accountId '${account.accountId} already exists.")
         }
     }
 
@@ -72,6 +75,10 @@ class AccountRepositoryImpl : AccountRepository {
             }
         }
     }
+
+    override fun findByAccountId(accountId: UUID): Account? = transaction {
+        AccountEntity.find { AccountTable.accountId eq accountId }.firstOrNull()?.toAccount()
+    }
 }
 
 fun AccountEntity.toAccount() = Account(
@@ -80,6 +87,6 @@ fun AccountEntity.toAccount() = Account(
     balance = this.balance,
     dispo = this.dispo,
     limit = this.limit,
-    created = this.created,
-    lastUpdated = this.lastUpdated
+    created = this.created.truncatedTo(ChronoUnit.SECONDS),
+    lastUpdated = this.lastUpdated.truncatedTo(ChronoUnit.SECONDS)
 )

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 interface UserService {
@@ -39,9 +40,17 @@ class UserServiceImpl(
             )
         }
         return try {
-            val persistedUser = userRepository.save(user = user)
-            logger.info("Successfully created user '$persistedUser'.")
-            ApiResult.Success(persistedUser.userId)
+            if (userRepository.findByUserId(user.userId) != null) {
+                logger.info("User with userId '${user.userId}' already exists in database.")
+                ApiResult.Failure(
+                    ErrorCode.USER_ALREADY_EXIST,
+                    "User with userId '${user.userId}' already exists in database."
+                )
+            } else {
+                val persistedUser = userRepository.save(user = user)
+                logger.info("Successfully created user '$persistedUser'.")
+                ApiResult.Success(persistedUser.userId)
+            }
 
         } catch (e: Exception) {
             logger.error("Unable to create user '$userDto' in database.", e)
@@ -165,8 +174,9 @@ class UserServiceImpl(
         lastName = this.lastName,
         birthdate = this.birthdate.format(DateTimeFormatter.ofPattern(BIRTH_DATE_FORMAT)),
         password = this.password,
-        created = this.created.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
-        lastUpdated = this.lastUpdated.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
+        created = this.created.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
+        lastUpdated = this.lastUpdated.truncatedTo(ChronoUnit.SECONDS)
+            .format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
         account = this.accounts.map { it.toAccountOverviewDto() }
     )
 
@@ -176,8 +186,9 @@ class UserServiceImpl(
         balance = this.balance,
         dispo = this.dispo,
         limit = this.limit,
-        created = this.created.toString(),
-        lastUpdated = this.lastUpdated.toString()
+        created = this.created.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
+        lastUpdated = this.lastUpdated.truncatedTo(ChronoUnit.SECONDS)
+            .format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT))
     )
 
     override fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID> {

@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.*
 
 internal class AdministratorEntityTest {
@@ -30,6 +31,8 @@ internal class AdministratorEntityTest {
                 adminId = UUID.randomUUID()
                 name = "Admin"
                 password = "passw0rd"
+                created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
+                lastUpdated = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
             }
         }
 
@@ -45,6 +48,8 @@ internal class AdministratorEntityTest {
                 adminId = UUID.randomUUID()
                 name = "Admin"
                 password = "passw0rd"
+                created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
+                lastUpdated = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
             }
         }
 
@@ -63,6 +68,8 @@ internal class AdministratorEntityTest {
                 adminId = UUID.randomUUID()
                 name = "Admin"
                 password = "passw0rd"
+                created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
+                lastUpdated = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
             }
         }
 
@@ -70,7 +77,9 @@ internal class AdministratorEntityTest {
         transaction { persistedAdministrator.name = "Other Admin" }
 
         // then
-        assertThat(transaction { AdministratorEntity.findById(persistedAdministrator.id)!!.name }).isEqualTo("Other Admin")
+        assertThat(
+            transaction { AdministratorEntity.findById(persistedAdministrator.id)!!.name }
+        ).isEqualTo("Other Admin")
     }
 
     @Test
@@ -81,6 +90,8 @@ internal class AdministratorEntityTest {
                 adminId = UUID.randomUUID()
                 name = "Admin"
                 password = "passw0rd"
+                created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
+                lastUpdated = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
             }
         }
 

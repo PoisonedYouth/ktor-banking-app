@@ -55,3 +55,7 @@ ALTER TABLE `account` ADD CONSTRAINT `account_name` UNIQUE  (`name`, `user_id`);
 
 -- changeset liquibase:4
 ALTER TABLE `user` ADD CONSTRAINT `unique_user` UNIQUE (`first_name`, `last_name`, `birthdate`);
+
+-- changeset liquibase:5
+ALTER TABLE `administrator` ADD COLUMN `created` DATETIME NOT NULL DEFAULT NOW();
+ALTER TABLE `administrator` ADD COLUMN `last_updated` DATETIME NOT NULL DEFAULT NOW();

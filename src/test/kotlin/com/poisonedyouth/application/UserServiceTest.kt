@@ -358,7 +358,7 @@ internal class UserServiceTest : KoinTest {
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
-        (actual as Success).value.apply {
+        (actual as Success).value.run {
             assertThat(this.userId).isEqualByComparingTo(persistedUser.userId)
             assertThat(this.firstName).isEqualTo("John")
             assertThat(this.lastName).isEqualTo("Doe")
