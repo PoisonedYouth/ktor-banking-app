@@ -87,7 +87,7 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId, transactionDto = transactionDto)
+            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
         Assertions.assertThat(actual).isInstanceOf(Success::class.java)
@@ -135,7 +135,7 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = UUID.randomUUID(), transactionDto = transactionDto)
+            transactionService.createTransaction(userId = UUID.randomUUID().toString(), transactionDto = transactionDto)
 
         // then
         Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
@@ -182,11 +182,58 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId, transactionDto = transactionDto)
+            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
         Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
         Assertions.assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+    }
+
+    @Test
+    fun `createTransaction fails if userId is invalid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transactionDto = TransactionDto(
+            origin = account.accountId,
+            target = otherAccount.accountId,
+            amount = 100.0
+        )
+
+        // when
+        val actual =
+            transactionService.createTransaction(userId = "INVALID_USERID", transactionDto = transactionDto)
+
+        // then
+        Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
+        Assertions.assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
     }
 
     @Test
@@ -230,7 +277,7 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = otherPersistedUser.userId, transactionDto = transactionDto)
+            transactionService.createTransaction(userId = otherPersistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
         Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
@@ -278,7 +325,7 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId, transactionDto = transactionDto)
+            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
         Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
@@ -326,7 +373,7 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId, transactionDto = transactionDto)
+            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
         Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
@@ -374,7 +421,7 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId, transactionDto = transactionDto)
+            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
         Assertions.assertThat(actual).isInstanceOf(Failure::class.java)

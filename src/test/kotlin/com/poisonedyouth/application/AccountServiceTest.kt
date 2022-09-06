@@ -308,6 +308,39 @@ internal class AccountServiceTest : KoinTest {
     }
 
     @Test
+    fun `updateAccount fails if userId is not valid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+
+        // when
+        val actual = accountService.updateAccount(
+            userId = "INVALID_USERID", accountDto = AccountDto(
+                accountId = persistedAccount.accountId,
+                name = "Other Account",
+                dispo = account.dispo,
+                limit = account.limit
+            )
+        )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
     fun `updateAccount fails if account not belongs to given user`() {
         // given
         val user = User(
@@ -434,6 +467,66 @@ internal class AccountServiceTest : KoinTest {
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+    }
+
+    @Test
+    fun `deleteAccount fails if accountId is invalid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(persistedUser, account)
+
+        // when
+        val actual =
+            accountService.deleteAccount(
+                userId = persistedUser.userId.toString(),
+                accountId = "INVALID_ACCOUNT_ID"
+            )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
+    fun `deleteAccount fails if userId is invalid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+
+        // when
+        val actual =
+            accountService.deleteAccount(
+                userId = "INVALID_USERID",
+                accountId = persistedAccount.accountId.toString()
+            )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
     }
 
     @Test

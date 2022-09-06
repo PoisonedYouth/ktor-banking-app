@@ -12,7 +12,7 @@ import java.util.*
 
 interface TransactionService {
 
-    fun createTransaction(userId: UUID, transactionDto: TransactionDto): ApiResult<UUID>
+    fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID>
 }
 
 class TransactionServiceImpl(
@@ -22,10 +22,16 @@ class TransactionServiceImpl(
 ) : TransactionService {
     private val logger: Logger = LoggerFactory.getLogger(TransactionService::class.java)
 
-    override fun createTransaction(userId: UUID, transactionDto: TransactionDto): ApiResult<UUID> {
+    override fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID> {
         logger.info("Start creation of transaction '${transactionDto}.")
+        val userIdResolved = try {
+            UUID.fromString(userId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+        }
         val user = try {
-            val existingUser = userRepository.findByUserId(userId)
+            val existingUser = userRepository.findByUserId(userIdResolved)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' not found.")
                 return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
