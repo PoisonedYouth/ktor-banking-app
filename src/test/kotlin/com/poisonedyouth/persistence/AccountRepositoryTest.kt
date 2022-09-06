@@ -67,7 +67,7 @@ class AccountRepositoryTest : KoinTest {
 
         // then
         assertThat(actual).isNotNull
-        assertThat(transaction { AccountEntity.find { AccountTable.accountId eq actual.accountId }.single()}).isNotNull
+        assertThat(transaction { AccountEntity.find { AccountTable.accountId eq actual.accountId }.single() }).isNotNull
     }
 
     @Test
@@ -96,7 +96,7 @@ class AccountRepositoryTest : KoinTest {
     }
 
     @Test
-    fun `save updates existing account to database`() {
+    fun `save fails if account exist in database`() {
         // given
         val user = User(
             userId = UUID.randomUUID(),
@@ -117,20 +117,102 @@ class AccountRepositoryTest : KoinTest {
         )
         val persistedAccount = accountRepository.saveForUser(persistedUser, account)
 
+        // when + then
+        assertThatThrownBy {
+            accountRepository.saveForUser(
+                persistedUser, persistedAccount
+            )
+        }.isInstanceOf(
+            IllegalStateException::class.java
+        )
+    }
+
+    @Test
+    fun `update throws exception if user is not available in database`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+
+        // when + then
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        assertThatThrownBy { accountRepository.updateForUser(user, account) }.isInstanceOf(
+            IllegalStateException::class.java
+        )
+    }
+
+    @Test
+    fun `update throws exception if account is not available in database`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when + then
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        assertThatThrownBy { accountRepository.updateForUser(persistedUser, account) }.isInstanceOf(
+            IllegalStateException::class.java
+        )
+    }
+
+    @Test
+    fun `update persists changes of account to database`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        accountRepository.saveForUser(persistedUser, account)
+
+
         // when
-        val updatedAccount = accountRepository.saveForUser(
-            persistedUser, persistedAccount.copy(
-                name = "My other account"
+        val actual = accountRepository.updateForUser(
+            persistedUser, account.copy(
+                name = "Other Account"
             )
         )
 
         // then
-        assertThat(updatedAccount).isNotNull
-        assertThat(transaction { AccountEntity.all().count() }).isEqualTo(1)
+        assertThat(actual).isNotNull
         assertThat(transaction {
-            AccountEntity.find { AccountTable.accountId eq updatedAccount.accountId }.single().name
-        })
-            .isEqualTo("My other account")
+            AccountEntity.find { AccountTable.accountId eq actual.accountId }.single().name
+        }).isEqualTo("Other Account")
     }
 
     @Test

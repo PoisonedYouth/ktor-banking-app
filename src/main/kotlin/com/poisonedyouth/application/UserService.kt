@@ -98,6 +98,7 @@ class UserServiceImpl(
             logger.error("Unable to find user with userId '$userId' in database.", e)
             return ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
         }
+
         return try {
             userRepository.delete(user)
             logger.info("Successfully deleted user '$user'.")

@@ -4,10 +4,13 @@ import com.poisonedyouth.domain.Account
 import com.poisonedyouth.domain.User
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
+import java.util.*
 
 interface AccountRepository {
 
     fun saveForUser(user: User, account: Account): Account
+
+    fun updateForUser(user: User, account: Account): Account
 
     fun delete(account: Account)
 }
@@ -16,11 +19,11 @@ class AccountRepositoryImpl : AccountRepository {
 
     override fun saveForUser(user: User, account: Account) = transaction {
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
-            ?: error("User '${user.userId}' not persisted yet!")
+            ?: error("User with userId '${user.userId}' not persisted yet!")
         val currentDateTime = LocalDateTime.now()
-        val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId  }.singleOrNull()
+        val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.singleOrNull()
         if (existingAccount == null) {
-            val accountEntity = AccountEntity.new {
+            AccountEntity.new {
                 accountId = account.accountId
                 name = account.name
                 balance = account.balance
@@ -36,17 +39,29 @@ class AccountRepositoryImpl : AccountRepository {
                 lastUpdated = currentDateTime
             )
         } else {
-            existingAccount.accountId = account.accountId
-            existingAccount.name = account.name
-            existingAccount.balance = account.balance
-            existingAccount.dispo = account.dispo
-            existingAccount.limit = account.limit
-            existingAccount.lastUpdated = currentDateTime
-            account.copy(
-                lastUpdated = currentDateTime
-            )
+            error("User with userId '${user.userId} already exists.")
         }
     }
+
+    override fun updateForUser(user: User, account: Account): Account = transaction {
+        val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
+            ?: error("User with userId '${user.userId}' not persisted yet!")
+        val currentDateTime = LocalDateTime.now()
+        val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
+            ?: error("Account with accountId '${account.accountId} not persisted yet! ")
+
+        existingAccount.accountId = account.accountId
+        existingAccount.name = account.name
+        existingAccount.balance = account.balance
+        existingAccount.dispo = account.dispo
+        existingAccount.limit = account.limit
+        existingAccount.lastUpdated = currentDateTime
+        existingAccount.userEntity = existingUser
+        account.copy(
+            lastUpdated = currentDateTime
+        )
+    }
+
 
     override fun delete(account: Account) = transaction {
         AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull().let {
