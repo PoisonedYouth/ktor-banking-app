@@ -61,7 +61,7 @@ class UserServiceImpl(
         }
     }
 
-    fun UserDto.toUser() = try {
+    private fun UserDto.toUser() = try {
         val user = User(
             firstName = this.firstName,
             lastName = this.lastName,
@@ -110,6 +110,12 @@ class UserServiceImpl(
 
     override fun updateUser(userDto: UserDto): ApiResult<UUID> {
         logger.info("Start updating user '$userDto'.")
+        if (userDto.userId == null || userRepository.findByUserId(userDto.userId) == null) {
+            return ApiResult.Failure(
+                ErrorCode.USER_NOT_FOUND,
+                "User with userId '${userDto.userId}' does not exist in database."
+            )
+        }
         val user = try {
             userDto.toUser()
         } catch (e: InvalidInputException) {

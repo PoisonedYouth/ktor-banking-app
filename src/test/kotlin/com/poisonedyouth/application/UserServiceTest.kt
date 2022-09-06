@@ -286,6 +286,33 @@ internal class UserServiceTest : KoinTest {
     }
 
     @Test
+    fun `update user fails if user does not exist in database`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+
+        // when
+        val actual = userService.updateUser(
+            UserDto(
+                userId = user.userId,
+                firstName = "Max",
+                lastName = "DeMarco",
+                birthdate = user.birthdate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                password = user.password
+            )
+        )
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
     fun `update user fails if password does not fulfill requirement`() {
         // given
         val user = User(
