@@ -51,7 +51,6 @@ class UserServiceImpl(
             logger.error("Unable to create user '$userDto' in database.", e)
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
         }
-
     }
 
     private fun parseBirthdate(birthdate: String): LocalDate {
@@ -62,7 +61,7 @@ class UserServiceImpl(
         }
     }
 
-    private fun UserDto.toUser() = try {
+    fun UserDto.toUser() = try {
         val user = User(
             firstName = this.firstName,
             lastName = this.lastName,
