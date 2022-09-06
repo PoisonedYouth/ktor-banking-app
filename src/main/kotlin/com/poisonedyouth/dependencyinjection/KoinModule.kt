@@ -1,5 +1,6 @@
 package com.poisonedyouth.dependencyinjection
 
+import com.poisonedyouth.api.UserController
 import com.poisonedyouth.application.AccountService
 import com.poisonedyouth.application.AccountServiceImpl
 import com.poisonedyouth.application.TransactionService
@@ -25,6 +26,7 @@ val bankingAppModule = module {
     single<UserService> { UserServiceImpl(get()) }
     single<AccountService> { AccountServiceImpl(get(), get()) }
     single<TransactionService> { TransactionServiceImpl(get(), get(), get()) }
+    single { UserController(get()) }
 }
 
 fun Application.setupKoin() {

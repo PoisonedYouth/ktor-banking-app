@@ -470,7 +470,7 @@ class TransactionRepositoryTest : KoinTest {
             target = persistedOtherAccount,
             amount = 60.0
         )
-        val persistedTransaction = transactionRepository.save(transaction)
+        transactionRepository.save(transaction)
 
         // when
         val actual = transactionRepository.findByTransactionId(UUID.randomUUID())
