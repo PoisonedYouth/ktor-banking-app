@@ -3,11 +3,13 @@ package com.poisonedyouth.api
 import com.poisonedyouth.application.UserDto
 import com.poisonedyouth.application.UserOverviewDto
 import com.poisonedyouth.domain.User
+import com.poisonedyouth.persistence.UserEntity
 import com.poisonedyouth.persistence.UserRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
@@ -25,8 +27,10 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.koin.test.KoinTest
 import org.koin.test.inject
@@ -59,6 +63,11 @@ internal class UserControllerTest : KoinTest {
         fun teardown() {
             server.stop(100, 100)
         }
+    }
+
+    @BeforeEach
+    fun clearDatabase() {
+        transaction { UserEntity.all().forEach { it.delete() } }
     }
 
 
@@ -221,6 +230,54 @@ internal class UserControllerTest : KoinTest {
                     password = "Ta1&tudol3lal54e"
                 )
             )
+            contentType(ContentType.Application.Json)
+        }
+        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        val body = response.bodyAsText()
+        assertThat(body).isEqualTo("User with userId '$userId' does not exist in database.")
+    }
+
+    @Test
+    fun `deleteUser is possible`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        // when
+        val response = client.delete("http://localhost:8080/api/user/${user.userId}") {
+            contentType(ContentType.Application.Json)
+        }
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val body = response.body<UUID>()
+        assertThat(body).isNotNull
+        assertThat(userRepository.findByUserId(body)).isNull()
+    }
+
+    @Test
+    fun `deleteUser fails if user does not exist`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        // when
+        val userId = UUID.randomUUID()
+        val response = client.delete("http://localhost:8080/api/user/${userId}") {
             contentType(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)

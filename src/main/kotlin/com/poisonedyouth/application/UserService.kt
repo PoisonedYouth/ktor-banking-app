@@ -89,14 +89,17 @@ class UserServiceImpl(
         val userIdResolved = try {
             UUID.fromString(userId)
         } catch (e: IllegalArgumentException) {
-            logger.error("Given userId '$userId' is not valid.")
+            logger.error("Given userId '$userId' is not valid.", e)
             return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
         }
         val user = try {
             val existingUser = userRepository.findByUserId(userIdResolved)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' not found.")
-                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
             }
             existingUser
         } catch (e: Exception) {
@@ -152,7 +155,7 @@ class UserServiceImpl(
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
                 logger.error("User with userId '$userId' not found.")
-                ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+                ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' does not exist in database.")
             } else {
                 logger.info("Successfully found user with userId '$userId'.")
                 ApiResult.Success(user.toUserOverviewDto())
@@ -199,6 +202,7 @@ class UserServiceImpl(
                 return ApiResult.Failure(
                     ErrorCode.USER_NOT_FOUND,
                     "For the given userId '${userPasswordChangeDto.userId}' no user exist."
+
                 )
             }
             existingUser

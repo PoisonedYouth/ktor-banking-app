@@ -24,7 +24,7 @@ fun Application.configureRouting() {
             userController.updateExistingUser(call)
         }
         delete("/api/user/{userId}") {
-
+            userController.deleteUser(call)
         }
         put("/api/user/{userId}/password") {
 
