@@ -8,10 +8,8 @@ import com.poisonedyouth.domain.Account
 import com.poisonedyouth.domain.User
 import com.poisonedyouth.persistence.AccountRepository
 import com.poisonedyouth.persistence.UserRepository
-import org.assertj.core.api.Assertions
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -137,15 +135,16 @@ internal class AccountServiceTest : KoinTest {
             dispo = -100.0,
             limit = 100.0
         )
-        val persistedAccount =  accountRepository.saveForUser(user = persistedUser, account = account)
+        val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
 
         // when
-        val actual = accountService.createAccount(userId = persistedUser.userId, accountDto = AccountDto(
-            accountId = persistedAccount.accountId,
-            name = "My Other Account",
-            dispo = persistedAccount.dispo,
-            limit = persistedAccount.limit
-        )
+        val actual = accountService.createAccount(
+            userId = persistedUser.userId, accountDto = AccountDto(
+                accountId = persistedAccount.accountId,
+                name = "My Other Account",
+                dispo = persistedAccount.dispo,
+                limit = persistedAccount.limit
+            )
         )
 
         // then
@@ -169,14 +168,16 @@ internal class AccountServiceTest : KoinTest {
             dispo = -100.0,
             limit = 100.0
         )
-        val persistedAccount =  accountRepository.saveForUser(user = persistedUser, account = account)
+        val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
 
         // when
-        val actual = accountService.createAccount(userId = persistedUser.userId, accountDto = AccountDto(
-            name = persistedAccount.name,
-            dispo = persistedAccount.dispo,
-            limit = persistedAccount.limit
-        ))
+        val actual = accountService.createAccount(
+            userId = persistedUser.userId, accountDto = AccountDto(
+                name = persistedAccount.name,
+                dispo = persistedAccount.dispo,
+                limit = persistedAccount.limit
+            )
+        )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -199,15 +200,17 @@ internal class AccountServiceTest : KoinTest {
             dispo = -100.0,
             limit = 100.0
         )
-        val persistedAccount =  accountRepository.saveForUser(user = persistedUser, account = account)
+        val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
 
         // when
-        val actual = accountService.updateAccount(userId = persistedUser.userId, accountDto = AccountDto(
-            accountId = persistedAccount.accountId,
-            name = "Other Account",
-            dispo = persistedAccount.dispo,
-            limit = persistedAccount.limit
-        ))
+        val actual = accountService.updateAccount(
+            userId = persistedUser.userId, accountDto = AccountDto(
+                accountId = persistedAccount.accountId,
+                name = "Other Account",
+                dispo = persistedAccount.dispo,
+                limit = persistedAccount.limit
+            )
+        )
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
@@ -231,15 +234,17 @@ internal class AccountServiceTest : KoinTest {
             dispo = -100.0,
             limit = 100.0
         )
-        val persistedAccount =  accountRepository.saveForUser(user = persistedUser, account = account)
+        val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
 
         // when
-        val actual = accountService.updateAccount(userId = UUID.randomUUID(), accountDto = AccountDto(
-            accountId = persistedAccount.accountId,
-            name = "Other Account",
-            dispo = persistedAccount.dispo,
-            limit = persistedAccount.limit
-        ))
+        val actual = accountService.updateAccount(
+            userId = UUID.randomUUID(), accountDto = AccountDto(
+                accountId = persistedAccount.accountId,
+                name = "Other Account",
+                dispo = persistedAccount.dispo,
+                limit = persistedAccount.limit
+            )
+        )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -255,7 +260,7 @@ internal class AccountServiceTest : KoinTest {
             birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val persistedUser = userRepository.save(user)
+        userRepository.save(user)
 
         val account = Account(
             name = "My Account",
@@ -263,15 +268,171 @@ internal class AccountServiceTest : KoinTest {
             limit = 100.0
         )
         // when
-        val actual = accountService.updateAccount(userId = user.userId, accountDto = AccountDto(
-            accountId = account.accountId,
-            name = "Other Account",
-            dispo = account.dispo,
-            limit = account.limit
-        ))
+        val actual = accountService.updateAccount(
+            userId = user.userId, accountDto = AccountDto(
+                accountId = account.accountId,
+                name = "Other Account",
+                dispo = account.dispo,
+                limit = account.limit
+            )
+        )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+    }
+
+    @Test
+    fun `updateAccount fails if account not belongs to given user`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Marco",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        // when
+        val actual = accountService.updateAccount(
+            userId = otherPersistedUser.userId, accountDto = AccountDto(
+                accountId = account.accountId,
+                name = "Other Account",
+                dispo = account.dispo,
+                limit = account.limit
+            )
+        )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.NOT_ALLOWED)
+    }
+
+    @Test
+    fun `deleteAccount is possible`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
+
+        // when
+        val actual = accountService.deleteAccount(userId = persistedUser.userId, accountId = persistedAccount.accountId)
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isEqualTo(persistedAccount.accountId)
+        assertThat(accountRepository.findAllForUser(persistedUser.userId)).isEmpty()
+    }
+
+    @Test
+    fun `deleteAccount fails if user does not exist in database`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
+
+        // when
+        val actual = accountService.deleteAccount(userId = UUID.randomUUID(), accountId = persistedAccount.accountId)
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun `deleteAccount fails if account does not exist in database`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+
+        // when
+        val actual = accountService.deleteAccount(userId = persistedUser.userId, accountId = account.accountId)
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+    }
+
+    @Test
+    fun `deleteAccount fails if account does not belong to user`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedOtherUser = userRepository.save(otherUser)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
+
+        // when
+        val actual =
+            accountService.deleteAccount(userId = persistedOtherUser.userId, accountId = persistedAccount.accountId)
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.NOT_ALLOWED)
     }
 }

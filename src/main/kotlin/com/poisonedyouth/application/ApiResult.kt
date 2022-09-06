@@ -13,4 +13,5 @@ enum class ErrorCode {
     ACCOUNT_NOT_FOUND,
     ACCOUNT_ALREADY_EXIST,
     PASSWORD_ERROR,
+    NOT_ALLOWED
 }

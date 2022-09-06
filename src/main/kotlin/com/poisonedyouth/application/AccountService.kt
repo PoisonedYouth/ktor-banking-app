@@ -12,6 +12,7 @@ interface AccountService {
     fun createAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
 
     fun updateAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
+    fun deleteAccount(userId: UUID, accountId: UUID): ApiResult<UUID>
 }
 
 class AccountServiceImpl(
@@ -93,6 +94,12 @@ class AccountServiceImpl(
                 e.getErrorMessage()
             )
         }
+        if (user.accounts.find { it.accountId == account.accountId } === null) {
+            return ApiResult.Failure(
+                ErrorCode.NOT_ALLOWED,
+                "Account with accountId '${account.accountId}' does not belong to user with userId '$userId'"
+            )
+        }
         return try {
             val updatedAccount = accountRepository.updateForUser(user = user, account = account)
             logger.info("Successfully updated account '$updatedAccount'.")
@@ -100,6 +107,36 @@ class AccountServiceImpl(
         } catch (e: Exception) {
             logger.error("Unable to update account '$accountDto' to database.", e)
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
+        }
+    }
+
+    override fun deleteAccount(userId: UUID, accountId: UUID): ApiResult<UUID> {
+        logger.info("Start deleting of account with accountId '$accountId' for user with userId '${userId}'.")
+        try {
+            val user = userRepository.findByUserId(userId)
+            if (user == null) {
+                logger.error("User with userId '$userId' not found.")
+                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+            }
+            val existingAccount = accountRepository.findByAccountId(accountId)
+                ?: return ApiResult.Failure(
+                    ErrorCode.ACCOUNT_NOT_FOUND,
+                    "Account with accountId '$accountId' is not available in database."
+                )
+            if (user.accounts.find { it.accountId == existingAccount.accountId } === null) {
+                return ApiResult.Failure(
+                    ErrorCode.NOT_ALLOWED,
+                    "Account with accountId '${accountId}' does not belong to user with userId '$userId'"
+                )
+            }
+            accountRepository.delete(existingAccount)
+            logger.info("Successfully deleted account with accountId '$accountId'.")
+            return ApiResult.Success(accountId)
+        } catch (e: Exception) {
+            return ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Account with accountId '${accountId}' cannot be deleted."
+            )
         }
     }
 }

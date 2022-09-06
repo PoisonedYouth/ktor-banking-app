@@ -16,6 +16,8 @@ interface AccountRepository {
     fun delete(account: Account)
 
     fun findByAccountId(accountId: UUID): Account?
+
+    fun findAllForUser(userId: UUID): List<Account>
 }
 
 class AccountRepositoryImpl : AccountRepository {
@@ -78,6 +80,11 @@ class AccountRepositoryImpl : AccountRepository {
 
     override fun findByAccountId(accountId: UUID): Account? = transaction {
         AccountEntity.find { AccountTable.accountId eq accountId }.firstOrNull()?.toAccount()
+    }
+
+    override fun findAllForUser(userId: UUID): List<Account> = transaction {
+        val user = UserEntity.find { UserTable.userId eq userId }.firstOrNull()
+        AccountEntity.find { AccountTable.user eq user?.id }.map { it.toAccount() }
     }
 }
 

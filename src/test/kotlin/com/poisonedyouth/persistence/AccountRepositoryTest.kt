@@ -326,9 +326,76 @@ class AccountRepositoryTest : KoinTest {
         val persistedAccount = accountRepository.saveForUser(persistedUser, account)
 
         // when
-        val actual = accountRepository.findByAccountId(persistedAccount.accountId)
+        val actual = accountRepository.findByAccountId(UUID.randomUUID())
 
         // then
-        assertThat(actual).isEqualTo(persistedAccount)
+        assertThat(actual).isNull()
+    }
+
+    @Test
+    fun `findAllForUser returns empty list for no matching account`(){
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        accountRepository.saveForUser(persistedUser, account)
+
+        // when
+        val actual = accountRepository.findAllForUser(UUID.randomUUID())
+
+        // then
+        assertThat(actual).isEmpty()
+    }
+
+    @Test
+    fun `findAllForUser returns list of matching accounts`(){
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+
+        val otherAccount = Account(
+            name = "My  other account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedOtherAccount = accountRepository.saveForUser(persistedUser, otherAccount)
+
+        // when
+        val actual = accountRepository.findAllForUser(persistedUser.userId)
+
+        // then
+        assertThat(actual).containsExactly(persistedAccount, persistedOtherAccount)
     }
 }
