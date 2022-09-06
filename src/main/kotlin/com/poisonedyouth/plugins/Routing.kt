@@ -15,7 +15,7 @@ fun Application.configureRouting() {
 
     routing() {
         get("/api/user/{userId}") {
-
+            userController.getExistingUser(call)
         }
         post("/api/user") {
             userController.createNewUser(call)
