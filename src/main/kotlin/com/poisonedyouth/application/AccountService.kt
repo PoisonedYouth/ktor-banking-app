@@ -1,6 +1,7 @@
 package com.poisonedyouth.application
 
 import com.poisonedyouth.domain.Account
+import com.poisonedyouth.domain.containsAccount
 import com.poisonedyouth.persistence.AccountRepository
 import com.poisonedyouth.persistence.UserRepository
 import org.slf4j.Logger
@@ -8,7 +9,6 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 interface AccountService {
-
     fun createAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
 
     fun updateAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
@@ -94,7 +94,7 @@ class AccountServiceImpl(
                 e.getErrorMessage()
             )
         }
-        if (user.accounts.find { it.accountId == account.accountId } === null) {
+        if (!user.accounts.containsAccount(account)) {
             return ApiResult.Failure(
                 ErrorCode.NOT_ALLOWED,
                 "Account with accountId '${account.accountId}' does not belong to user with userId '$userId'"
@@ -123,7 +123,7 @@ class AccountServiceImpl(
                     ErrorCode.ACCOUNT_NOT_FOUND,
                     "Account with accountId '$accountId' is not available in database."
                 )
-            if (user.accounts.find { it.accountId == existingAccount.accountId } === null) {
+            if (user.accounts.containsAccount(existingAccount)) {
                 return ApiResult.Failure(
                     ErrorCode.NOT_ALLOWED,
                     "Account with accountId '${accountId}' does not belong to user with userId '$userId'"
