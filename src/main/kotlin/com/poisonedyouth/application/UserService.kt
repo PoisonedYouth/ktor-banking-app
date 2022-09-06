@@ -16,8 +16,8 @@ interface UserService {
     fun createUser(userDto: UserDto): ApiResult<UUID>
     fun deleteUser(userId: String?): ApiResult<UUID>
     fun updateUser(userDto: UserDto): ApiResult<UUID>
-    fun findUserBy(userId: String?): ApiResult<UserOverviewDto>
     fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID>
+    fun findUserByUserId(userId: String?): ApiResult<UserOverviewDto>
 }
 
 private const val BIRTH_DATE_FORMAT = "dd.MM.yyyy"
@@ -143,7 +143,7 @@ class UserServiceImpl(
         }
     }
 
-    override fun findUserBy(userId: String?): ApiResult<UserOverviewDto> {
+    override fun findUserByUserId(userId: String?): ApiResult<UserOverviewDto> {
         logger.info("Start finding user with userId '$userId'.")
         return try {
             val userIdResolved = try {

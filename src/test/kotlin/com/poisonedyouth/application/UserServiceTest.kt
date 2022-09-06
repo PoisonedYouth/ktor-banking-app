@@ -354,7 +354,7 @@ internal class UserServiceTest : KoinTest {
         val persistedUser = userRepository.save(user)
 
         // when
-        val actual = userService.findUserBy(persistedUser.userId.toString())
+        val actual = userService.findUserByUserId(persistedUser.userId.toString())
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
@@ -382,7 +382,7 @@ internal class UserServiceTest : KoinTest {
         userRepository.save(user)
 
         // when
-        val actual = userService.findUserBy("invalid userId")
+        val actual = userService.findUserByUserId("invalid userId")
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -401,7 +401,7 @@ internal class UserServiceTest : KoinTest {
         userRepository.save(user)
 
         // when
-        val actual = userService.findUserBy(UUID.randomUUID().toString())
+        val actual = userService.findUserByUserId(UUID.randomUUID().toString())
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
