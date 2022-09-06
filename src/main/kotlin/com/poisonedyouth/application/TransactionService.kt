@@ -25,77 +25,61 @@ class TransactionServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID> {
         logger.info("Start creation of transaction '${transactionDto}.")
-        val userIdResolved = try {
-            UUID.fromString(userId)
-        } catch (e: IllegalArgumentException) {
-            logger.error("Given userId '$userId' is not valid.", e)
-            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
-        }
-        val user = try {
+        return try {
+            val userIdResolved = try {
+                UUID.fromString(userId)
+            } catch (e: IllegalArgumentException) {
+                logger.error("Given userId '$userId' is not valid.", e)
+                return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+            }
             val existingUser = userRepository.findByUserId(userIdResolved)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' not found.")
                 return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
             }
-            existingUser
-        } catch (e: Exception) {
-            logger.error("Unable to find user with userId '$userId' in database.", e)
-            return ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
-        }
-        val origin = try {
-            accountRepository.findByAccountId(transactionDto.origin)
+            val origin = accountRepository.findByAccountId(transactionDto.origin)
                 ?: return ApiResult.Failure(
                     ErrorCode.ACCOUNT_NOT_FOUND,
                     "Account with accountId '${transactionDto.origin}' does not exist in database."
                 )
-        } catch (e: Exception) {
-            logger.error("Unable to find account with accountId '${transactionDto.origin}' in database.", e)
-            return ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
-        }
-        if (user.accounts.notContainsAccount(origin)) {
-            return ApiResult.Failure(
-                ErrorCode.NOT_ALLOWED,
-                "Account with accountId '${origin.accountId}' does not belong to user with userId '$userId'"
-            )
-        }
-
-        val target = try {
-            accountRepository.findByAccountId(transactionDto.target)
+            if (existingUser.accounts.notContainsAccount(origin)) {
+                return ApiResult.Failure(
+                    ErrorCode.NOT_ALLOWED,
+                    "Account with accountId '${origin.accountId}' does not belong to user with userId '$userId'"
+                )
+            }
+            val target = accountRepository.findByAccountId(transactionDto.target)
                 ?: return ApiResult.Failure(
                     ErrorCode.ACCOUNT_NOT_FOUND,
                     "Account with accountId '${transactionDto.target}' does not exist in database."
                 )
-        } catch (e: Exception) {
-            logger.error("Unable to find account with accountId '${transactionDto.target}' in database.", e)
-            return ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
-        }
 
-        if (origin.balance + origin.dispo < transactionDto.amount) {
-            logger.error("Origin account with accountId '${origin.accountId}' has not enough balance for transaction.")
-            return ApiResult.Failure(ErrorCode.TRANSACTION_REQUEST_INVALID, "Not enough balance for transaction.")
-        }
-        if (origin.limit < transactionDto.amount) {
-            logger.error("Origin account with accountId '${origin.accountId}' has not enough balance for transaction.")
-            return ApiResult.Failure(ErrorCode.TRANSACTION_REQUEST_INVALID, "Not enough balance for transaction.")
-        }
+            if (origin.balance + origin.dispo < transactionDto.amount) {
+                logger.error("Origin account with accountId '${origin.accountId}' has not enough balance for transaction.")
+                return ApiResult.Failure(ErrorCode.TRANSACTION_REQUEST_INVALID, "Not enough balance for transaction.")
+            }
+            if (origin.limit < transactionDto.amount) {
+                logger.error("Origin account with accountId '${origin.accountId}' has not enough balance for transaction.")
+                return ApiResult.Failure(ErrorCode.TRANSACTION_REQUEST_INVALID, "Not enough balance for transaction.")
+            }
 
-        val transaction = try {
-            createTransaction(transactionDto = transactionDto, origin = origin, target = target)
-        } catch (e: InvalidInputException) {
-            logger.error("Unable to map given dto '$transactionDto' to domain object.", e)
-            return ApiResult.Failure(
-                ErrorCode.MAPPING_ERROR,
-                e.getErrorMessage()
-            )
-        }
+            val transaction = createTransaction(transactionDto = transactionDto, origin = origin, target = target)
 
-        return try {
             val persistedTransaction = transactionRepository.save(transaction)
             logger.info("Successfully created transaction '$persistedTransaction'.")
             ApiResult.Success(persistedTransaction.transactionId)
+        } catch (e: InvalidInputException) {
+            logger.error("Unable to map given dto '$transactionDto' to domain object.", e)
+            ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                e.getErrorMessage()
+            )
         } catch (e: Exception) {
             logger.error("Unable to create transaction '$transactionDto' in database.", e)
-            ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
+            ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Unable to create transaction '$transactionDto' in database."
+            )
         }
     }
 
@@ -119,13 +103,9 @@ class TransactionServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun deleteTransaction(transactionId: String?): ApiResult<UUID> {
         logger.info("Start delete of transaction with transactionId '$transactionId'.")
-        val transactionIdResolved = try {
-            UUID.fromString(transactionId)
-        } catch (e: IllegalArgumentException) {
-            logger.error("Given transactionId '$transactionId' is not valid.", e)
-            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given transactionId '$transactionId' is not valid.")
-        }
-        val transaction = try {
+        return try {
+            val transactionIdResolved = UUID.fromString(transactionId)
+
             val existingTransaction = transactionRepository.findByTransactionId(transactionIdResolved)
             if (existingTransaction == null) {
                 logger.error("Transaction with transactionId '$transactionId' cannot be found.")
@@ -134,39 +114,27 @@ class TransactionServiceImpl(
                     "Transaction with transactionId '$transactionId' cannot be found."
                 )
             }
-            existingTransaction
-        } catch (e: Exception) {
-            logger.error("Cannot find transaction with transactionId '$transactionId'.", e)
-            return ApiResult.Failure(
-                ErrorCode.DATABASE_ERROR,
-                "Cannot find transaction with transactionId '$transactionId'."
-            )
-        }
-        try {
-            val origin = transaction.origin.copy(
-                balance = transaction.origin.balance + transaction.amount
+            val origin = existingTransaction.origin.copy(
+                balance = existingTransaction.origin.balance + existingTransaction.amount
             )
             accountRepository.updateAccount(origin)
-        } catch (e: Exception) {
-            logger.error("Account with accountId '${transaction.origin.accountId}' cannot be updated to database.", e)
-            return ApiResult.Failure(
-                ErrorCode.DATABASE_ERROR,
-                "Account with accountId '${transaction.origin.accountId}' cannot be updated to database."
-            )
-        }
-        try {
-            val target = transaction.target.copy(
-                balance = transaction.origin.balance - transaction.amount
+
+            val target = existingTransaction.target.copy(
+                balance = existingTransaction.origin.balance - existingTransaction.amount
             )
             accountRepository.updateAccount(target)
+            logger.info("Successfully deleted transaction with transactionId '$transactionId'.")
+            ApiResult.Success(transactionIdResolved)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given transactionId '$transactionId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given transactionId '$transactionId' is not valid.")
         } catch (e: Exception) {
-            logger.error("Account with accountId '${transaction.origin.accountId}' cannot be updated to database.", e)
-            return ApiResult.Failure(
+            logger.error("Cannot delete transaction with transactionId '$transactionId' from database.", e)
+            ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
-                "Account with accountId '${transaction.origin.accountId}' cannot be updated to database."
+                "Cannot delete transaction with transactionId '$transactionId' from database."
             )
+
         }
-        logger.info("Successfully deleted transaction with transactionId '$transactionId'.")
-        return ApiResult.Success(transactionIdResolved)
     }
 }

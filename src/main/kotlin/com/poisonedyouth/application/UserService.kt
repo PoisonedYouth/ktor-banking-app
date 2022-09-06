@@ -31,16 +31,8 @@ class UserServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun createUser(userDto: UserDto): ApiResult<UUID> {
         logger.info("Start creation of user '$userDto'.")
-        val user = try {
-            userDto.toUser()
-        } catch (e: InvalidInputException) {
-            logger.error("Unable to map given dto '$userDto' to domain object.", e)
-            return ApiResult.Failure(
-                ErrorCode.MAPPING_ERROR,
-                e.getErrorMessage()
-            )
-        }
         return try {
+            val user = userDto.toUser()
             if (userRepository.findByUserId(user.userId) != null) {
                 logger.info("User with userId '${user.userId}' already exists in database.")
                 ApiResult.Failure(
@@ -52,7 +44,12 @@ class UserServiceImpl(
                 logger.info("Successfully created user '$persistedUser'.")
                 ApiResult.Success(persistedUser.userId)
             }
-
+        } catch (e: InvalidInputException) {
+            logger.error("Unable to map given dto '$userDto' to domain object.", e)
+            ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                e.getErrorMessage()
+            )
         } catch (e: Exception) {
             logger.error("Unable to create user '$userDto' in database.", e)
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
@@ -88,13 +85,9 @@ class UserServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun deleteUser(userId: String?): ApiResult<UUID> {
         logger.info("Start deleting user with userId'$userId'.")
-        val userIdResolved = try {
-            UUID.fromString(userId)
-        } catch (e: IllegalArgumentException) {
-            logger.error("Given userId '$userId' is not valid.", e)
-            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
-        }
-        val user = try {
+        return try {
+            val userIdResolved = UUID.fromString(userId)
+
             val existingUser = userRepository.findByUserId(userIdResolved)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' not found.")
@@ -103,15 +96,12 @@ class UserServiceImpl(
                     "User with userId '$userId' does not exist in database."
                 )
             }
-            existingUser
-        } catch (e: Exception) {
-            logger.error("Unable to find user with userId '$userId' in database.", e)
-            return ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
-        }
-        return try {
-            userRepository.delete(user)
-            logger.info("Successfully deleted user '$user'.")
-            ApiResult.Success(user.userId)
+            userRepository.delete(existingUser)
+            logger.info("Successfully deleted user '$existingUser'.")
+            ApiResult.Success(existingUser.userId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
         } catch (e: Exception) {
             logger.error("Unable to delete user with userId '$userId' from database.", e)
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
@@ -121,25 +111,23 @@ class UserServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun updateUser(userDto: UserDto): ApiResult<UUID> {
         logger.info("Start updating user '$userDto'.")
-        if (userDto.userId == null || userRepository.findByUserId(userDto.userId) == null) {
-            return ApiResult.Failure(
-                ErrorCode.USER_NOT_FOUND,
-                "User with userId '${userDto.userId}' does not exist in database."
-            )
-        }
-        val user = try {
-            userDto.toUser()
-        } catch (e: InvalidInputException) {
-            logger.error("Unable to map given dto '$userDto' to domain object.", e)
-            return ApiResult.Failure(
-                ErrorCode.MAPPING_ERROR,
-                e.getErrorMessage()
-            )
-        }
         return try {
+            if (userDto.userId == null || userRepository.findByUserId(userDto.userId) == null) {
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '${userDto.userId}' does not exist in database."
+                )
+            }
+            val user = userDto.toUser()
             userRepository.save(user)
             logger.info("Successfully updated user '$user'.")
             ApiResult.Success(user.userId)
+        } catch (e: InvalidInputException) {
+            logger.error("Unable to map given dto '$userDto' to domain object.", e)
+            ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                e.getErrorMessage()
+            )
         } catch (e: Exception) {
             logger.error("Unable to update user '$userDto' to database.", e)
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.message ?: "Undefined error during persistence occurred.")
@@ -150,12 +138,7 @@ class UserServiceImpl(
     override fun findUserByUserId(userId: String?): ApiResult<UserOverviewDto> {
         logger.info("Start finding user with userId '$userId'.")
         return try {
-            val userIdResolved = try {
-                UUID.fromString(userId)
-            } catch (e: IllegalArgumentException) {
-                logger.error("Given userId '$userId' is not valid.", e)
-                return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
-            }
+            val userIdResolved = UUID.fromString(userId)
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
                 logger.error("User with userId '$userId' not found.")
@@ -164,6 +147,9 @@ class UserServiceImpl(
                 logger.info("Successfully found user with userId '$userId'.")
                 ApiResult.Success(user.toUserOverviewDto())
             }
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
         } catch (e: Exception) {
             logger.error("Unable to find user with userId '$userId' from database.'", e)
             ApiResult.Failure(
@@ -200,7 +186,7 @@ class UserServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID> {
         logger.info("Start updating password for user with userId '${userPasswordChangeDto.userId}'.")
-        val user = try {
+        return try {
             val existingUser = userRepository.findByUserId(userPasswordChangeDto.userId)
             if (existingUser == null) {
                 logger.error("User with userId '${userPasswordChangeDto.userId}' not found in database.")
@@ -209,23 +195,15 @@ class UserServiceImpl(
                     "User with userId '$userPasswordChangeDto' does not exist in database."
                 )
             }
-            existingUser
-        } catch (e: Exception) {
-            logger.error("Unable to find user with userId '${userPasswordChangeDto.userId}' from database.'", e)
-            return ApiResult.Failure(
-                ErrorCode.DATABASE_ERROR,
-                e.getErrorMessage()
-            )
-        }
-        if (userPasswordChangeDto.existingPassword == userPasswordChangeDto.newPassword) {
-            logger.error("The given new password cannot be the same as the existing one.")
-            return ApiResult.Failure(
-                ErrorCode.PASSWORD_ERROR,
-                "The new password cannot be the same as the existing one."
-            )
-        }
-        return try {
-            val updatedUser = user.copy(
+
+            if (userPasswordChangeDto.existingPassword == userPasswordChangeDto.newPassword) {
+                logger.error("The given new password cannot be the same as the existing one.")
+                return ApiResult.Failure(
+                    ErrorCode.PASSWORD_ERROR,
+                    "The new password cannot be the same as the existing one."
+                )
+            }
+            val updatedUser = existingUser.copy(
                 password = userPasswordChangeDto.newPassword
             )
             val result = userRepository.save(updatedUser)
@@ -235,7 +213,10 @@ class UserServiceImpl(
             logger.error("Password does not fulfill the requirements.", e)
             ApiResult.Failure(ErrorCode.PASSWORD_ERROR, e.getErrorMessage())
         } catch (e: Exception) {
-            logger.error("Unable to update user '$user' to database.", e)
+            logger.error(
+                "Unable to update password for user with userId '${userPasswordChangeDto.userId}' to database.",
+                e
+            )
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
         }
     }

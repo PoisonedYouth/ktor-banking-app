@@ -23,27 +23,14 @@ class AccountServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun createAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start creation of account '$accountDto' for user with userId '$userId'.")
-        val userIdResolved = try {
-            UUID.fromString(userId)
-        } catch (e: IllegalArgumentException) {
-            logger.error("Given userId '$userId' is not valid.", e)
-            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
-        }
-        val user = userRepository.findByUserId(userIdResolved)
-        if (user == null) {
-            logger.error("User with userId '$userId' not found.")
-            return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
-        }
-        val account = try {
-            accountDto.toAccount()
-        } catch (e: InvalidInputException) {
-            logger.error("Unable to map given dto '$accountDto' to domain object.", e)
-            return ApiResult.Failure(
-                ErrorCode.MAPPING_ERROR,
-                e.getErrorMessage()
-            )
-        }
         return try {
+            val userIdResolved = UUID.fromString(userId)
+            val user = userRepository.findByUserId(userIdResolved)
+            if (user == null) {
+                logger.error("User with userId '$userId' not found.")
+                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+            }
+            val account = accountDto.toAccount()
             if (accountRepository.findByAccountId(account.accountId) != null) {
                 logger.info("Account with accountId '${account.accountId}' already exist in database.")
                 ApiResult.Failure(
@@ -55,6 +42,15 @@ class AccountServiceImpl(
                 logger.info("Successfully created account '$persistedAccount' for user with userId '$userId'.")
                 ApiResult.Success(persistedAccount.accountId)
             }
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+        } catch (e: InvalidInputException) {
+            logger.error("Unable to map given dto '$accountDto' to domain object.", e)
+            ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                e.getErrorMessage()
+            )
         } catch (e: Exception) {
             logger.error("Unable to create account '$accountDto' in database.", e)
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
@@ -81,43 +77,41 @@ class AccountServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun updateAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start update of account '$accountDto' for user with userId '$userId'.")
-        val userIdResolved = try {
-            UUID.fromString(userId)
-        } catch (e: IllegalArgumentException) {
-            logger.error("Given userId '$userId' is not valid.", e)
-            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
-        }
-        val user = userRepository.findByUserId(userIdResolved)
-        if (user == null) {
-            logger.error("User with userId '$userId' not found.")
-            return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
-        }
-        if (accountDto.accountId == null || accountRepository.findByAccountId(accountDto.accountId) == null) {
-            return ApiResult.Failure(
-                ErrorCode.ACCOUNT_NOT_FOUND,
-                "Account with accountId '${accountDto.accountId}' does not exist in database."
-            )
-        }
-        val account = try {
-            accountDto.toAccount()
-        } catch (e: InvalidInputException) {
-            logger.error("Unable to map given dto '$accountDto' to domain object.", e)
-            return ApiResult.Failure(
-                ErrorCode.MAPPING_ERROR,
-                e.getErrorMessage()
-            )
-        }
-        if (user.accounts.notContainsAccount(account)) {
-            logger.error("Account with accountId '${account.accountId}' does not belong to user with userId '$userId'")
-            return ApiResult.Failure(
-                ErrorCode.NOT_ALLOWED,
-                "Account with accountId '${account.accountId}' does not belong to user with userId '$userId'"
-            )
-        }
         return try {
+            val userIdResolved = try {
+                UUID.fromString(userId)
+            } catch (e: IllegalArgumentException) {
+                logger.error("Given userId '$userId' is not valid.", e)
+                return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+            }
+            val user = userRepository.findByUserId(userIdResolved)
+            if (user == null) {
+                logger.error("User with userId '$userId' not found.")
+                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+            }
+            if (accountDto.accountId == null || accountRepository.findByAccountId(accountDto.accountId) == null) {
+                return ApiResult.Failure(
+                    ErrorCode.ACCOUNT_NOT_FOUND,
+                    "Account with accountId '${accountDto.accountId}' does not exist in database."
+                )
+            }
+            val account = accountDto.toAccount()
+            if (user.accounts.notContainsAccount(account)) {
+                logger.error("Account with accountId '${account.accountId}' does not belong to user with userId '$userId'")
+                return ApiResult.Failure(
+                    ErrorCode.NOT_ALLOWED,
+                    "Account with accountId '${account.accountId}' does not belong to user with userId '$userId'"
+                )
+            }
             val updatedAccount = accountRepository.updateForUser(user = user, account = account)
             logger.info("Successfully updated account '$updatedAccount'.")
             ApiResult.Success(updatedAccount.accountId)
+        } catch (e: InvalidInputException) {
+            logger.error("Unable to map given dto '$accountDto' to domain object.", e)
+            ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                e.getErrorMessage()
+            )
         } catch (e: Exception) {
             logger.error("Unable to update account '$accountDto' to database.", e)
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
@@ -127,19 +121,10 @@ class AccountServiceImpl(
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun deleteAccount(userId: String?, accountId: String?): ApiResult<UUID> {
         logger.info("Start deleting of account with accountId '$accountId' for user with userId '${userId}'.")
-        val userIdResolved = try {
-            UUID.fromString(userId)
-        } catch (e: IllegalArgumentException) {
-            logger.error("Given userId '$userId' is not valid.", e)
-            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
-        }
-        val accountIdResolved = try {
-            UUID.fromString(accountId)
-        } catch (e: IllegalArgumentException) {
-            logger.error("Given accountId '$accountId' is not valid.", e)
-            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given accountId '$accountId' is not valid.")
-        }
-        try {
+        return try {
+            val userIdResolved = UUID.fromString(userId)
+            val accountIdResolved = UUID.fromString(accountId)
+
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
                 logger.error("User with userId '$userId' not found.")
@@ -159,9 +144,12 @@ class AccountServiceImpl(
             accountRepository.delete(existingAccount)
             logger.info("Successfully deleted account with accountId '$accountId'.")
             return ApiResult.Success(accountIdResolved)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
         } catch (e: Exception) {
             logger.error("Account with accountId '${accountId}' cannot be deleted.", e)
-            return ApiResult.Failure(
+            ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
                 "Account with accountId '${accountId}' cannot be deleted."
             )
