@@ -33,4 +33,4 @@ data class User(
     }
 }
 
-fun List<Account>.containsAccount(account: Account) = this.find { it.accountId == account.accountId } != null
+fun List<Account>.notContainsAccount(account: Account) = this.find { it.accountId == account.accountId } == null

@@ -43,7 +43,7 @@ internal class UserControllerTest : KoinTest {
     private val userRepository by inject<UserRepository>()
 
     companion object {
-        lateinit var server: NettyApplicationEngine
+        private lateinit var server: NettyApplicationEngine
 
         @BeforeAll
         @JvmStatic
@@ -73,7 +73,7 @@ internal class UserControllerTest : KoinTest {
 
 
     @Test
-    fun `createNewUser`() = runBlocking<Unit> {
+    fun createNewUser() = runBlocking<Unit> {
         // given
         val client = createHttpClient()
 
@@ -126,7 +126,7 @@ internal class UserControllerTest : KoinTest {
     }
 
     @Test
-    fun `getExistingUser`() = runBlocking<Unit> {
+    fun getExistingUser() = runBlocking {
         // given
         val client = createHttpClient()
 
@@ -246,7 +246,7 @@ internal class UserControllerTest : KoinTest {
     }
 
     @Test
-    fun `deleteUser is possible`() = runBlocking<Unit> {
+    fun `deleteUser is possible`() = runBlocking {
         // given
         val client = createHttpClient()
 
@@ -295,7 +295,7 @@ internal class UserControllerTest : KoinTest {
     }
 
     private fun createHttpClient(): HttpClient {
-        val client = HttpClient() {
+        val client = HttpClient{
             install(ContentNegotiation) {
                 jackson()
             }

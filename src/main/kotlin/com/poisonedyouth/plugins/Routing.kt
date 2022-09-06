@@ -7,27 +7,43 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 
 fun Application.configureRouting() {
     val userController by inject<UserController>()
 
-    routing() {
-        get("/api/user/{userId}") {
-            userController.getExistingUser(call)
+    routing{
+        route("/api/user") {
+            get("/{userId}") {
+                userController.getExistingUser(call)
+            }
+            post("") {
+                userController.createNewUser(call)
+            }
+            put("") {
+                userController.updateExistingUser(call)
+            }
+            delete("/{userId}") {
+                userController.deleteUser(call)
+            }
+            put("/{userId}/password") {
+                userController.updatePassword(call)
+            }
         }
-        post("/api/user") {
-            userController.createNewUser(call)
-        }
-        put("/api/user") {
-            userController.updateExistingUser(call)
-        }
-        delete("/api/user/{userId}") {
-            userController.deleteUser(call)
-        }
-        put("/api/user/{userId}/password") {
-            userController.updatePassword(call)
+        route("/api/user/{userId}/account") {
+            get("/{accountId}"){
+            }
+            post(""){
+
+            }
+            put("") {
+
+            }
+            delete("/{accountId}"){
+
+            }
         }
     }
 }

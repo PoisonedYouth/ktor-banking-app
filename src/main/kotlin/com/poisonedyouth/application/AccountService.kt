@@ -1,7 +1,7 @@
 package com.poisonedyouth.application
 
 import com.poisonedyouth.domain.Account
-import com.poisonedyouth.domain.containsAccount
+import com.poisonedyouth.domain.notContainsAccount
 import com.poisonedyouth.persistence.AccountRepository
 import com.poisonedyouth.persistence.UserRepository
 import org.slf4j.Logger
@@ -20,6 +20,7 @@ class AccountServiceImpl(
 ) : AccountService {
     private val logger: Logger = LoggerFactory.getLogger(AccountService::class.java)
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun createAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start creation of account '$accountDto' for user with userId '$userId'.")
         val userIdResolved = try {
@@ -77,6 +78,7 @@ class AccountServiceImpl(
         throw InvalidInputException("Given AccountDto '$this' is not valid.", e)
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun updateAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start update of account '$accountDto' for user with userId '$userId'.")
         val userIdResolved = try {
@@ -105,7 +107,7 @@ class AccountServiceImpl(
                 e.getErrorMessage()
             )
         }
-        if (!user.accounts.containsAccount(account)) {
+        if (user.accounts.notContainsAccount(account)) {
             logger.error("Account with accountId '${account.accountId}' does not belong to user with userId '$userId'")
             return ApiResult.Failure(
                 ErrorCode.NOT_ALLOWED,
@@ -122,6 +124,7 @@ class AccountServiceImpl(
         }
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun deleteAccount(userId: String?, accountId: String?): ApiResult<UUID> {
         logger.info("Start deleting of account with accountId '$accountId' for user with userId '${userId}'.")
         val userIdResolved = try {
@@ -147,7 +150,7 @@ class AccountServiceImpl(
                     ErrorCode.ACCOUNT_NOT_FOUND,
                     "Account with accountId '$accountId' is not available in database."
                 )
-            if (!user.accounts.containsAccount(existingAccount)) {
+            if (user.accounts.notContainsAccount(existingAccount)) {
                 return ApiResult.Failure(
                     ErrorCode.NOT_ALLOWED,
                     "Account with accountId '${accountId}' does not belong to user with userId '$userId'"
@@ -157,7 +160,7 @@ class AccountServiceImpl(
             logger.info("Successfully deleted account with accountId '$accountId'.")
             return ApiResult.Success(accountIdResolved)
         } catch (e: Exception) {
-            logger.error("Account with accountId '${accountId}' cannot be deleted.")
+            logger.error("Account with accountId '${accountId}' cannot be deleted.", e)
             return ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
                 "Account with accountId '${accountId}' cannot be deleted."

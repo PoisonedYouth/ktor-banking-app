@@ -2,7 +2,7 @@ package com.poisonedyouth.application
 
 import com.poisonedyouth.domain.Account
 import com.poisonedyouth.domain.Transaction
-import com.poisonedyouth.domain.containsAccount
+import com.poisonedyouth.domain.notContainsAccount
 import com.poisonedyouth.persistence.AccountRepository
 import com.poisonedyouth.persistence.TransactionRepository
 import com.poisonedyouth.persistence.UserRepository
@@ -22,6 +22,7 @@ class TransactionServiceImpl(
 ) : TransactionService {
     private val logger: Logger = LoggerFactory.getLogger(TransactionService::class.java)
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID> {
         logger.info("Start creation of transaction '${transactionDto}.")
         val userIdResolved = try {
@@ -51,7 +52,7 @@ class TransactionServiceImpl(
             logger.error("Unable to find account with accountId '${transactionDto.origin}' in database.", e)
             return ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
         }
-        if (!user.accounts.containsAccount(origin)) {
+        if (user.accounts.notContainsAccount(origin)) {
             return ApiResult.Failure(
                 ErrorCode.NOT_ALLOWED,
                 "Account with accountId '${origin.accountId}' does not belong to user with userId '$userId'"
@@ -115,6 +116,7 @@ class TransactionServiceImpl(
         throw InvalidInputException("Given TransactionDto '$transactionDto' is not valid.", e)
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun deleteTransaction(transactionId: String?): ApiResult<UUID> {
         logger.info("Start delete of transaction with transactionId '$transactionId'.")
         val transactionIdResolved = try {
@@ -146,7 +148,7 @@ class TransactionServiceImpl(
             )
             accountRepository.updateAccount(origin)
         } catch (e: Exception) {
-            logger.error("Account with accountId '${transaction.origin.accountId}' cannot be updated to database.")
+            logger.error("Account with accountId '${transaction.origin.accountId}' cannot be updated to database.", e)
             return ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
                 "Account with accountId '${transaction.origin.accountId}' cannot be updated to database."
@@ -158,7 +160,7 @@ class TransactionServiceImpl(
             )
             accountRepository.updateAccount(target)
         } catch (e: Exception) {
-            logger.error("Account with accountId '${transaction.origin.accountId}' cannot be updated to database.")
+            logger.error("Account with accountId '${transaction.origin.accountId}' cannot be updated to database.", e)
             return ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
                 "Account with accountId '${transaction.origin.accountId}' cannot be updated to database."

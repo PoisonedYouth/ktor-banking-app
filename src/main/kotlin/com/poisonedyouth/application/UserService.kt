@@ -28,6 +28,7 @@ class UserServiceImpl(
 ) : UserService {
     private val logger: Logger = LoggerFactory.getLogger(UserService::class.java)
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun createUser(userDto: UserDto): ApiResult<UUID> {
         logger.info("Start creation of user '$userDto'.")
         val user = try {
@@ -84,6 +85,7 @@ class UserServiceImpl(
         throw InvalidInputException("Given UserDto '$this' is not valid.", e)
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun deleteUser(userId: String?): ApiResult<UUID> {
         logger.info("Start deleting user with userId'$userId'.")
         val userIdResolved = try {
@@ -116,6 +118,7 @@ class UserServiceImpl(
         }
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun updateUser(userDto: UserDto): ApiResult<UUID> {
         logger.info("Start updating user '$userDto'.")
         if (userDto.userId == null || userRepository.findByUserId(userDto.userId) == null) {
@@ -143,6 +146,7 @@ class UserServiceImpl(
         }
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun findUserByUserId(userId: String?): ApiResult<UserOverviewDto> {
         logger.info("Start finding user with userId '$userId'.")
         return try {
@@ -193,6 +197,7 @@ class UserServiceImpl(
             .format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT))
     )
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID> {
         logger.info("Start updating password for user with userId '${userPasswordChangeDto.userId}'.")
         val user = try {

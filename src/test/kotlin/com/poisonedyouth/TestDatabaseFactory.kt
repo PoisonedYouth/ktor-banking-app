@@ -12,7 +12,7 @@ import java.util.UUID
 
 class TestDatabaseFactory : DatabaseFactory {
 
-    lateinit var source: HikariDataSource
+    private lateinit var source: HikariDataSource
 
     override fun connect() {
         source = hikari()
