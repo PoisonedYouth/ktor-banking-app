@@ -10,4 +10,10 @@ data class Transaction(
     val target: Account,
     val amount: Double,
     val created: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-)
+) {
+    init {
+        require(amount > 0.0) {
+            "Amount must be positive."
+        }
+    }
+}
