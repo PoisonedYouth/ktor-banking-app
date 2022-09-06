@@ -16,7 +16,7 @@ interface UserService {
     fun deleteUser(userId: String?): ApiResult<UUID>
     fun updateUser(userDto: UserDto): ApiResult<UUID>
     fun findUserBy(userId: String?): ApiResult<UserOverviewDto>
-    fun updatePassword(userId: UUID, existingPassword: String, newPassword: String): ApiResult<UUID>
+    fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID>
 }
 
 private const val BIRTH_DATE_FORMAT = "dd.MM.yyyy"
@@ -180,23 +180,26 @@ class UserServiceImpl(
         lastUpdated = this.lastUpdated.toString()
     )
 
-    override fun updatePassword(userId: UUID, existingPassword: String, newPassword: String): ApiResult<UUID> {
-        logger.info("Start updating password for user with userId '$userId'.")
+    override fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID> {
+        logger.info("Start updating password for user with userId '${userPasswordChangeDto.userId}'.")
         val user = try {
-            val existingUser = userRepository.findByUserId(userId)
+            val existingUser = userRepository.findByUserId(userPasswordChangeDto.userId)
             if (existingUser == null) {
-                logger.error("User with userId '$userId' not found in database.")
-                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "For the given userId '$userId' no user exist.")
+                logger.error("User with userId '${userPasswordChangeDto.userId}' not found in database.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "For the given userId '${userPasswordChangeDto.userId}' no user exist."
+                )
             }
             existingUser
         } catch (e: Exception) {
-            logger.error("Unable to find user with userId '$userId' from database.'", e)
+            logger.error("Unable to find user with userId '${userPasswordChangeDto.userId}' from database.'", e)
             return ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
                 e.getErrorMessage()
             )
         }
-        if (existingPassword == newPassword) {
+        if (userPasswordChangeDto.existingPassword == userPasswordChangeDto.newPassword) {
             logger.error("The given new password cannot be the same as the existing one.")
             return ApiResult.Failure(
                 ErrorCode.PASSWORD_ERROR,
@@ -205,10 +208,10 @@ class UserServiceImpl(
         }
         return try {
             val updatedUser = user.copy(
-                password = newPassword
+                password = userPasswordChangeDto.newPassword
             )
             val result = userRepository.save(updatedUser)
-            logger.info("Successfully updated password for user with userId '$userId'.")
+            logger.info("Successfully updated password for user with userId '${userPasswordChangeDto.userId}'.")
             ApiResult.Success(result.userId)
         } catch (e: IllegalArgumentException) {
             logger.error("Password does not fulfill the requirements.", e)

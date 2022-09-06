@@ -419,8 +419,14 @@ internal class UserServiceTest : KoinTest {
         )
         val persistedUser = userRepository.save(user)
 
+        val userPasswordChangeDto = UserPasswordChangeDto(
+            userId = persistedUser.userId,
+            existingPassword = persistedUser.password,
+            newPassword = "Ta1&zuxcv3lal54e"
+        )
+
         // when
-        val actual = userService.updatePassword(persistedUser.userId, persistedUser.password, "Ta1&zuxcv3lal54e")
+        val actual = userService.updatePassword(userPasswordChangeDto)
 
 
         // then
@@ -437,10 +443,16 @@ internal class UserServiceTest : KoinTest {
             birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val persistedUser = userRepository.save(user)
+        userRepository.save(user)
+
+        val userPasswordChangeDto = UserPasswordChangeDto(
+            userId = UUID.randomUUID(),
+            existingPassword = user.password,
+            newPassword = "Ta1&zuxcv3lal54e"
+        )
 
         // when
-        val actual = userService.updatePassword(UUID.randomUUID(), persistedUser.password, "Ta1&zuxcv3lal54e")
+        val actual = userService.updatePassword(userPasswordChangeDto)
 
 
         // then
@@ -459,8 +471,15 @@ internal class UserServiceTest : KoinTest {
         )
         val persistedUser = userRepository.save(user)
 
+        val userPasswordChangeDto = UserPasswordChangeDto(
+            userId = persistedUser.userId,
+            existingPassword = persistedUser.password,
+            newPassword = "Ta1&tudol3lal54e"
+        )
+
+
         // when
-        val actual = userService.updatePassword(persistedUser.userId, persistedUser.password, "Ta1&tudol3lal54e")
+        val actual = userService.updatePassword(userPasswordChangeDto)
 
 
         // then
@@ -479,8 +498,14 @@ internal class UserServiceTest : KoinTest {
         )
         val persistedUser = userRepository.save(user)
 
+        val userPasswordChangeDto = UserPasswordChangeDto(
+            userId = persistedUser.userId,
+            existingPassword = persistedUser.password,
+            newPassword = "NOT VALID"
+        )
+
         // when
-        val actual = userService.updatePassword(persistedUser.userId, persistedUser.password, "NOT VALID")
+        val actual = userService.updatePassword(userPasswordChangeDto)
 
 
         // then
