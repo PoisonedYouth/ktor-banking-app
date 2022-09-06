@@ -10,6 +10,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -143,7 +144,7 @@ internal class UserControllerTest : KoinTest {
         // given
         val client = createHttpClient()
 
-        val user = userRepository.save(
+        userRepository.save(
             User(
                 firstName = "John",
                 lastName = "Doe",
@@ -159,6 +160,72 @@ internal class UserControllerTest : KoinTest {
         assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
         val body = response.bodyAsText()
         assertThat(body).isEqualTo("Given userId 'invalid_userId' is not valid.")
+    }
+
+    @Test
+    fun `updateExistingUser is possible`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        // when
+        val response = client.put("http://localhost:8080/api/user") {
+            setBody(
+                UserDto(
+                    userId = user.userId,
+                    firstName = "John",
+                    lastName = "Doe",
+                    birthdate = "01.01.2000",
+                    password = "Ta1&tudol3lal54e"
+                )
+            )
+            contentType(ContentType.Application.Json)
+        }
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val body = response.body<UUID>()
+        assertThat(body).isNotNull
+        assertThat(userRepository.findByUserId(body)).isNotNull
+    }
+
+    @Test
+    fun `updateExistingUser fails if user does not exist`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        // when
+        val userId = UUID.randomUUID()
+        val response = client.put("http://localhost:8080/api/user") {
+            setBody(
+                UserDto(
+                    userId = userId,
+                    firstName = "John",
+                    lastName = "Doe",
+                    birthdate = "01.01.2000",
+                    password = "Ta1&tudol3lal54e"
+                )
+            )
+            contentType(ContentType.Application.Json)
+        }
+        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        val body = response.bodyAsText()
+        assertThat(body).isEqualTo("User with userId '$userId' does not exist in database.")
     }
 
     private fun createHttpClient(): HttpClient {

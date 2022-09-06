@@ -32,4 +32,14 @@ class UserController(
             }
         }
     }
+
+    suspend fun updateExistingUser(call: ApplicationCall) {
+        when (val result = userService.updateUser(call.receive())) {
+            is Success -> call.respond(HttpStatusCode.OK, result.value)
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(httpStatusCode, result.errorMessage)
+            }
+        }
+    }
 }
