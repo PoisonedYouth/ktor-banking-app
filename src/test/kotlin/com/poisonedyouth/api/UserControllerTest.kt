@@ -1,5 +1,6 @@
 package com.poisonedyouth.api
 
+import com.poisonedyouth.application.ErrorCode
 import com.poisonedyouth.application.UserDto
 import com.poisonedyouth.application.UserOverviewDto
 import com.poisonedyouth.application.UserPasswordChangeDto
@@ -15,7 +16,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -92,9 +92,9 @@ internal class UserControllerTest : KoinTest {
 
         // then
         assertThat(response.status).isEqualTo(HttpStatusCode.Created)
-        val body = response.body<UUID>()
-        assertThat(body).isNotNull
-        assertThat(userRepository.findByUserId(body)).isNotNull
+        val result = response.body<SuccessDto<UUID>>()
+        assertThat(result).isNotNull
+        assertThat(userRepository.findByUserId(result.value)).isNotNull
     }
 
     @Test
@@ -117,11 +117,12 @@ internal class UserControllerTest : KoinTest {
 
         // then
         assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
-        val errorMessage = response.bodyAsText()
-        assertThat(errorMessage).isEqualTo(
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo(
             "Given UserDto 'UserDto(userId=null, firstName=John, lastName=Doe, " +
                     "birthdate=01.01.2022, password=Ta1&tudol3lal54e)' is not valid."
         )
+        assertThat(result.errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
     }
 
     @Test
@@ -143,9 +144,13 @@ internal class UserControllerTest : KoinTest {
             accept(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        val body = response.body<UserOverviewDto>()
-        body.run {
-            assertThat(this.userId).isEqualTo(user.userId)
+        val result = response.body<SuccessDto<UserOverviewDto>>()
+        result.run {
+            assertThat(this.value.userId).isEqualTo(user.userId)
+            assertThat(this.value.firstName).isEqualTo(user.firstName)
+            assertThat(this.value.lastName).isEqualTo(user.lastName)
+            assertThat(this.value.password).isEqualTo(user.password)
+            assertThat(this.value.account).isEmpty()
         }
     }
 
@@ -168,8 +173,9 @@ internal class UserControllerTest : KoinTest {
             accept(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
-        val body = response.bodyAsText()
-        assertThat(body).isEqualTo("Given userId 'invalid_userId' is not valid.")
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo("Given userId 'invalid_userId' is not valid.")
+        assertThat(result.errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
     }
 
     @Test
@@ -200,9 +206,9 @@ internal class UserControllerTest : KoinTest {
             contentType(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        val body = response.body<UUID>()
-        assertThat(body).isNotNull
-        assertThat(userRepository.findByUserId(body)).isNotNull
+        val result = response.body<SuccessDto<UUID>>()
+        assertThat(result).isNotNull
+        assertThat(userRepository.findByUserId(result.value)).isNotNull
     }
 
     @Test
@@ -234,8 +240,9 @@ internal class UserControllerTest : KoinTest {
             contentType(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
-        val body = response.bodyAsText()
-        assertThat(body).isEqualTo("User with userId '$userId' does not exist in database.")
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo("User with userId '$userId' does not exist in database.")
+        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
     }
 
     @Test
@@ -257,9 +264,9 @@ internal class UserControllerTest : KoinTest {
             contentType(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        val body = response.body<UUID>()
-        assertThat(body).isNotNull
-        assertThat(userRepository.findByUserId(body)).isNull()
+        val result = response.body<SuccessDto<UUID>>()
+        assertThat(result).isNotNull
+        assertThat(userRepository.findByUserId(result.value)).isNull()
     }
 
     @Test
@@ -282,8 +289,9 @@ internal class UserControllerTest : KoinTest {
             contentType(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
-        val body = response.bodyAsText()
-        assertThat(body).isEqualTo("User with userId '$userId' does not exist in database.")
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo("User with userId '$userId' does not exist in database.")
+        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
     }
 
     private fun createHttpClient(): HttpClient {
@@ -321,9 +329,9 @@ internal class UserControllerTest : KoinTest {
             contentType(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        val body = response.body<UUID>()
-        assertThat(body).isNotNull
-        assertThat(userRepository.findByUserId(body)!!.password).isEqualTo("Ta1&zuxcv3lal54e")
+        val result = response.body<SuccessDto<UUID>>()
+        assertThat(result).isNotNull
+        assertThat(userRepository.findByUserId(result.value)!!.password).isEqualTo("Ta1&zuxcv3lal54e")
     }
 
     @Test
@@ -352,8 +360,9 @@ internal class UserControllerTest : KoinTest {
             contentType(ContentType.Application.Json)
         }
         assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
-        val body = response.bodyAsText()
-        assertThat(body).isEqualTo("The new password cannot be the same as the existing one.")
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo("The new password cannot be the same as the existing one.")
+        assertThat(result.errorCode).isEqualTo(ErrorCode.PASSWORD_ERROR)
         assertThat(userRepository.findByUserId(user.userId)!!.password).isEqualTo(user.password)
     }
 }

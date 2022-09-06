@@ -19,3 +19,12 @@ internal fun getHttpStatusCodeFromErrorCode(result: Failure) = when (result.erro
 
     ErrorCode.DATABASE_ERROR -> HttpStatusCode.InternalServerError
 }
+
+data class SuccessDto<T>(
+    val value: T
+)
+
+data class ErrorDto(
+    val errorCode: ErrorCode,
+    val errorMessage: String
+)
