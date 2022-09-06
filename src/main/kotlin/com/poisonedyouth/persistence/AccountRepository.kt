@@ -10,13 +10,10 @@ import java.util.*
 interface AccountRepository {
 
     fun saveForUser(user: User, account: Account): Account
-
     fun updateForUser(user: User, account: Account): Account
-
+    fun updateAccount(account: Account): Account
     fun delete(account: Account)
-
     fun findByAccountId(accountId: UUID): Account?
-
     fun findAllForUser(userId: UUID): List<Account>
 }
 
@@ -67,6 +64,21 @@ class AccountRepositoryImpl : AccountRepository {
         )
     }
 
+    override fun updateAccount(account: Account): Account = transaction {
+        val currentDateTime = LocalDateTime.now()
+        val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
+            ?: error("Account with accountId '${account.accountId} not persisted yet! ")
+
+        existingAccount.accountId = account.accountId
+        existingAccount.name = account.name
+        existingAccount.balance = account.balance
+        existingAccount.dispo = account.dispo
+        existingAccount.limit = account.limit
+        existingAccount.lastUpdated = currentDateTime
+        account.copy(
+            lastUpdated = currentDateTime
+        )
+    }
 
     override fun delete(account: Account) = transaction {
         AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull().let {

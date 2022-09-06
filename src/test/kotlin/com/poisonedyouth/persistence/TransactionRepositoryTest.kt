@@ -368,4 +368,114 @@ class TransactionRepositoryTest : KoinTest {
             persistedOtherTransaction.transactionId
         )
     }
+
+    @Test
+    fun `findByTransactionId returns matching transaction`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val otherUser = User(
+            userId = UUID.randomUUID(),
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedOtherUser = userRepository.save(otherUser)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+        val otherAccount = Account(
+            name = "Other account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedOtherAccount = accountRepository.saveForUser(persistedOtherUser, otherAccount)
+
+        val transaction = Transaction(
+            transactionId = UUID.randomUUID(),
+            origin = persistedAccount,
+            target = persistedOtherAccount,
+            amount = 60.0
+        )
+        val persistedTransaction = transactionRepository.save(transaction)
+
+        // when
+        val actual = transactionRepository.findByTransactionId(persistedTransaction.transactionId)
+
+        // then
+        assertThat(actual).isEqualTo(persistedTransaction)
+    }
+
+    @Test
+    fun `findByTransactionId returns null for no matching transaction`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val otherUser = User(
+            userId = UUID.randomUUID(),
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedOtherUser = userRepository.save(otherUser)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+        val otherAccount = Account(
+            name = "Other account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedOtherAccount = accountRepository.saveForUser(persistedOtherUser, otherAccount)
+
+        val transaction = Transaction(
+            transactionId = UUID.randomUUID(),
+            origin = persistedAccount,
+            target = persistedOtherAccount,
+            amount = 60.0
+        )
+        val persistedTransaction = transactionRepository.save(transaction)
+
+        // when
+        val actual = transactionRepository.findByTransactionId(UUID.randomUUID())
+
+        // then
+        assertThat(actual).isNull()
+    }
 }

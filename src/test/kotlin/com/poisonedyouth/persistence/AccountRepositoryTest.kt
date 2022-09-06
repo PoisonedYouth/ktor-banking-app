@@ -275,7 +275,7 @@ class AccountRepositoryTest : KoinTest {
     }
 
     @Test
-    fun `findByAccountId returns matching account`(){
+    fun `findByAccountId returns matching account`() {
         // given
         val user = User(
             userId = UUID.randomUUID(),
@@ -304,7 +304,7 @@ class AccountRepositoryTest : KoinTest {
     }
 
     @Test
-    fun `findByAccountId returns null for no matching account`(){
+    fun `findByAccountId returns null for no matching account`() {
         // given
         val user = User(
             userId = UUID.randomUUID(),
@@ -333,7 +333,7 @@ class AccountRepositoryTest : KoinTest {
     }
 
     @Test
-    fun `findAllForUser returns empty list for no matching account`(){
+    fun `findAllForUser returns empty list for no matching account`() {
         // given
         val user = User(
             userId = UUID.randomUUID(),
@@ -362,7 +362,7 @@ class AccountRepositoryTest : KoinTest {
     }
 
     @Test
-    fun `findAllForUser returns list of matching accounts`(){
+    fun `findAllForUser returns list of matching accounts`() {
         // given
         val user = User(
             userId = UUID.randomUUID(),
@@ -397,5 +397,67 @@ class AccountRepositoryTest : KoinTest {
 
         // then
         assertThat(actual).containsExactly(persistedAccount, persistedOtherAccount)
+    }
+
+    @Test
+    fun `updateAccount is possible`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+
+        // when
+        val actual = accountRepository.updateAccount(
+            persistedAccount.copy(
+                balance = 999.0
+            )
+        )
+
+        // then
+        assertThat(actual).isNotNull
+        assertThat(accountRepository.findByAccountId(actual.accountId)!!.balance).isEqualTo(999.0)
+    }
+
+    @Test
+    fun `updateAccount fails if account does not exist`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+
+        // when + then
+        assertThatThrownBy {
+            accountRepository.updateAccount(account)
+        }.isInstanceOf(IllegalStateException::class.java)
+
     }
 }

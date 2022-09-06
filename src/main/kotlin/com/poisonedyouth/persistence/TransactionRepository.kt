@@ -6,12 +6,12 @@ import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 interface TransactionRepository {
     fun save(transaction: Transaction): Transaction
-
     fun findAllByAccount(account: Account): List<Transaction>
-
+    fun findByTransactionId(transactionId: UUID): Transaction?
 }
 
 class TransactionRepositoryImpl : TransactionRepository {
@@ -43,6 +43,10 @@ class TransactionRepositoryImpl : TransactionRepository {
         TransactionEntity.find { TransactionTable.origin eq account.accountId or (TransactionTable.target eq account.accountId) }
             .map { it.toTransaction() }
     }
+
+    override fun findByTransactionId(transactionId: UUID): Transaction? = transaction {
+        TransactionEntity.find { TransactionTable.transactionId eq transactionId }.firstOrNull()?.toTransaction()
+    }
 }
 
 
@@ -51,5 +55,5 @@ fun TransactionEntity.toTransaction() = Transaction(
     origin = this.originEntity.toAccount(),
     target = this.targetEntity.toAccount(),
     amount = this.amount,
-    created = this.created
+    created = this.created.truncatedTo(ChronoUnit.SECONDS)
 )

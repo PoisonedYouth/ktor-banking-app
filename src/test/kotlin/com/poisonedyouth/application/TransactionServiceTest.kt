@@ -5,10 +5,13 @@ import com.poisonedyouth.application.ApiResult.Failure
 import com.poisonedyouth.application.ApiResult.Success
 import com.poisonedyouth.dependencyinjection.bankingAppModule
 import com.poisonedyouth.domain.Account
+import com.poisonedyouth.domain.Transaction
 import com.poisonedyouth.domain.User
 import com.poisonedyouth.persistence.AccountRepository
+import com.poisonedyouth.persistence.TransactionRepository
 import com.poisonedyouth.persistence.UserRepository
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,6 +27,7 @@ internal class TransactionServiceTest : KoinTest {
     private val transactionService by inject<TransactionService>()
     private val accountRepository by inject<AccountRepository>()
     private val userRepository by inject<UserRepository>()
+    private val transactionRepository by inject<TransactionRepository>()
 
     @JvmField
     @RegisterExtension
@@ -90,8 +94,8 @@ internal class TransactionServiceTest : KoinTest {
             transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
-        Assertions.assertThat(actual).isInstanceOf(Success::class.java)
-        Assertions.assertThat((actual as Success).value).isNotNull
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isNotNull
     }
 
     @Test
@@ -138,8 +142,8 @@ internal class TransactionServiceTest : KoinTest {
             transactionService.createTransaction(userId = UUID.randomUUID().toString(), transactionDto = transactionDto)
 
         // then
-        Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
-        Assertions.assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
     }
 
     @Test
@@ -185,8 +189,8 @@ internal class TransactionServiceTest : KoinTest {
             transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
-        Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
-        Assertions.assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
     }
 
     @Test
@@ -280,8 +284,8 @@ internal class TransactionServiceTest : KoinTest {
             transactionService.createTransaction(userId = otherPersistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
-        Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
-        Assertions.assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.NOT_ALLOWED)
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.NOT_ALLOWED)
     }
 
     @Test
@@ -328,8 +332,8 @@ internal class TransactionServiceTest : KoinTest {
             transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
-        Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
-        Assertions.assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.TRANSACTION_REQUEST_INVALID)
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.TRANSACTION_REQUEST_INVALID)
     }
 
     @Test
@@ -376,8 +380,8 @@ internal class TransactionServiceTest : KoinTest {
             transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
-        Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
-        Assertions.assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.TRANSACTION_REQUEST_INVALID)
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.TRANSACTION_REQUEST_INVALID)
     }
 
     @Test
@@ -424,7 +428,108 @@ internal class TransactionServiceTest : KoinTest {
             transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
 
         // then
-        Assertions.assertThat(actual).isInstanceOf(Failure::class.java)
-        Assertions.assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
+    fun `deleteTransaction is possible`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        // when
+        val actual = transactionService.deleteTransaction(persistedTransaction.transactionId.toString())
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isNotNull
+        assertThat(accountRepository.findByAccountId(persistedTransaction.origin.accountId)!!.balance).isEqualTo(200.0)
+        assertThat(accountRepository.findByAccountId(persistedTransaction.target.accountId)!!.balance).isEqualTo(0.0)
+    }
+
+    @Test
+    fun `deleteTransaction fails if transaction does not exist`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        // when
+        val actual = transactionService.deleteTransaction(transaction.transactionId.toString())
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.TRANSACTION_NOT_FOUND)
     }
 }

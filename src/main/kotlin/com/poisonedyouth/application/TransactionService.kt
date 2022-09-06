@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 interface TransactionService {
-
     fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID>
+    fun deleteTransaction(transactionId: String?): ApiResult<UUID>
 }
 
 class TransactionServiceImpl(
@@ -113,5 +113,58 @@ class TransactionServiceImpl(
         }
     } catch (e: IllegalArgumentException) {
         throw InvalidInputException("Given TransactionDto '$transactionDto' is not valid.", e)
+    }
+
+    override fun deleteTransaction(transactionId: String?): ApiResult<UUID> {
+        logger.info("Start delete of transaction with transactionId '$transactionId'.")
+        val transactionIdResolved = try {
+            UUID.fromString(transactionId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given transactionId '$transactionId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given transactionId '$transactionId' is not valid.")
+        }
+        val transaction = try {
+            val existingTransaction = transactionRepository.findByTransactionId(transactionIdResolved)
+            if (existingTransaction == null) {
+                logger.error("Transaction with transactionId '$transactionId' cannot be found.")
+                return ApiResult.Failure(
+                    ErrorCode.TRANSACTION_NOT_FOUND,
+                    "Transaction with transactionId '$transactionId' cannot be found."
+                )
+            }
+            existingTransaction
+        } catch (e: Exception) {
+            logger.error("Cannot find transaction with transactionId '$transactionId'.", e)
+            return ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Cannot find transaction with transactionId '$transactionId'."
+            )
+        }
+        try {
+            val origin = transaction.origin.copy(
+                balance = transaction.origin.balance + transaction.amount
+            )
+            accountRepository.updateAccount(origin)
+        } catch (e: Exception) {
+            logger.error("Account with accountId '${transaction.origin.accountId}' cannot be updated to database.")
+            return ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Account with accountId '${transaction.origin.accountId}' cannot be updated to database."
+            )
+        }
+        try {
+            val target = transaction.target.copy(
+                balance = transaction.origin.balance - transaction.amount
+            )
+            accountRepository.updateAccount(target)
+        } catch (e: Exception) {
+            logger.error("Account with accountId '${transaction.origin.accountId}' cannot be updated to database.")
+            return ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Account with accountId '${transaction.origin.accountId}' cannot be updated to database."
+            )
+        }
+        logger.info("Successfully deleted transaction with transactionId '$transactionId'.")
+        return ApiResult.Success(transactionIdResolved)
     }
 }

@@ -106,6 +106,7 @@ class AccountServiceImpl(
             )
         }
         if (!user.accounts.containsAccount(account)) {
+            logger.error("Account with accountId '${account.accountId}' does not belong to user with userId '$userId'")
             return ApiResult.Failure(
                 ErrorCode.NOT_ALLOWED,
                 "Account with accountId '${account.accountId}' does not belong to user with userId '$userId'"
@@ -156,6 +157,7 @@ class AccountServiceImpl(
             logger.info("Successfully deleted account with accountId '$accountId'.")
             return ApiResult.Success(accountIdResolved)
         } catch (e: Exception) {
+            logger.error("Account with accountId '${accountId}' cannot be deleted.")
             return ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
                 "Account with accountId '${accountId}' cannot be deleted."
