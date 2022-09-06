@@ -50,4 +50,14 @@ class UserController(
             }
         }
     }
+
+    suspend fun updatePassword(call: ApplicationCall) {
+        when (val result = userService.updatePassword(call.receive())) {
+            is Success -> call.respond(HttpStatusCode.OK, result.value)
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(httpStatusCode, result.errorMessage)
+            }
+        }
+    }
 }

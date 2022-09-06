@@ -201,8 +201,7 @@ class UserServiceImpl(
                 logger.error("User with userId '${userPasswordChangeDto.userId}' not found in database.")
                 return ApiResult.Failure(
                     ErrorCode.USER_NOT_FOUND,
-                    "For the given userId '${userPasswordChangeDto.userId}' no user exist."
-
+                    "User with userId '$userPasswordChangeDto' does not exist in database."
                 )
             }
             existingUser

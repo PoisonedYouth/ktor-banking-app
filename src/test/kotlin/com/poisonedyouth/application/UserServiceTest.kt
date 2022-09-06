@@ -477,7 +477,6 @@ internal class UserServiceTest : KoinTest {
             newPassword = "Ta1&tudol3lal54e"
         )
 
-
         // when
         val actual = userService.updatePassword(userPasswordChangeDto)
 

@@ -2,6 +2,7 @@ package com.poisonedyouth.api
 
 import com.poisonedyouth.application.UserDto
 import com.poisonedyouth.application.UserOverviewDto
+import com.poisonedyouth.application.UserPasswordChangeDto
 import com.poisonedyouth.domain.User
 import com.poisonedyouth.persistence.UserEntity
 import com.poisonedyouth.persistence.UserRepository
@@ -292,5 +293,67 @@ internal class UserControllerTest : KoinTest {
             }
         }
         return client
+    }
+
+    @Test
+    fun `updatePassword is possible`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        // when
+        val response = client.put("http://localhost:8080/api/user/${user.userId}/password") {
+            setBody(
+                UserPasswordChangeDto(
+                    userId = user.userId,
+                    existingPassword = user.password,
+                    newPassword = "Ta1&zuxcv3lal54e"
+                )
+            )
+            contentType(ContentType.Application.Json)
+        }
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val body = response.body<UUID>()
+        assertThat(body).isNotNull
+        assertThat(userRepository.findByUserId(body)!!.password).isEqualTo("Ta1&zuxcv3lal54e")
+    }
+
+    @Test
+    fun `updatePassword fails if new password is same as existing`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        // when
+        val response = client.put("http://localhost:8080/api/user/${user.userId}/password") {
+            setBody(
+                UserPasswordChangeDto(
+                    userId = user.userId,
+                    existingPassword = user.password,
+                    newPassword = user.password
+                )
+            )
+            contentType(ContentType.Application.Json)
+        }
+        assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
+        val body = response.bodyAsText()
+        assertThat(body).isEqualTo("The new password cannot be the same as the existing one.")
+        assertThat(userRepository.findByUserId(user.userId)!!.password).isEqualTo(user.password)
     }
 }
