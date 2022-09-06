@@ -323,7 +323,7 @@ class AccountRepositoryTest : KoinTest {
             dispo = -1000.0,
             limit = 1000.0,
         )
-        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+        accountRepository.saveForUser(persistedUser, account)
 
         // when
         val actual = accountRepository.findByAccountId(UUID.randomUUID())

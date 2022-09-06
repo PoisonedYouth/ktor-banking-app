@@ -128,7 +128,7 @@ internal class AccountServiceTest : KoinTest {
             birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val persistedUser = userRepository.save(user)
+        userRepository.save(user)
 
         val account = AccountDto(
             name = "My Account",
@@ -229,7 +229,7 @@ internal class AccountServiceTest : KoinTest {
 
         // when
         val actual = accountService.updateAccount(
-            userId = persistedUser.userId, accountDto = AccountDto(
+            userId = persistedUser.userId.toString(), accountDto = AccountDto(
                 accountId = persistedAccount.accountId,
                 name = "Other Account",
                 dispo = persistedAccount.dispo,
@@ -263,7 +263,7 @@ internal class AccountServiceTest : KoinTest {
 
         // when
         val actual = accountService.updateAccount(
-            userId = UUID.randomUUID(), accountDto = AccountDto(
+            userId = UUID.randomUUID().toString(), accountDto = AccountDto(
                 accountId = persistedAccount.accountId,
                 name = "Other Account",
                 dispo = persistedAccount.dispo,
@@ -294,7 +294,7 @@ internal class AccountServiceTest : KoinTest {
         )
         // when
         val actual = accountService.updateAccount(
-            userId = user.userId, accountDto = AccountDto(
+            userId = user.userId.toString(), accountDto = AccountDto(
                 accountId = account.accountId,
                 name = "Other Account",
                 dispo = account.dispo,
@@ -335,7 +335,7 @@ internal class AccountServiceTest : KoinTest {
 
         // when
         val actual = accountService.updateAccount(
-            userId = otherPersistedUser.userId, accountDto = AccountDto(
+            userId = otherPersistedUser.userId.toString(), accountDto = AccountDto(
                 accountId = account.accountId,
                 name = "Other Account",
                 dispo = account.dispo,
@@ -367,7 +367,10 @@ internal class AccountServiceTest : KoinTest {
         val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
 
         // when
-        val actual = accountService.deleteAccount(userId = persistedUser.userId, accountId = persistedAccount.accountId)
+        val actual = accountService.deleteAccount(
+            userId = persistedUser.userId.toString(),
+            accountId = persistedAccount.accountId.toString()
+        )
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
@@ -394,7 +397,10 @@ internal class AccountServiceTest : KoinTest {
         val persistedAccount = accountRepository.saveForUser(user = persistedUser, account = account)
 
         // when
-        val actual = accountService.deleteAccount(userId = UUID.randomUUID(), accountId = persistedAccount.accountId)
+        val actual = accountService.deleteAccount(
+            userId = UUID.randomUUID().toString(),
+            accountId = persistedAccount.accountId.toString()
+        )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -419,7 +425,11 @@ internal class AccountServiceTest : KoinTest {
         )
 
         // when
-        val actual = accountService.deleteAccount(userId = persistedUser.userId, accountId = account.accountId)
+        val actual =
+            accountService.deleteAccount(
+                userId = persistedUser.userId.toString(),
+                accountId = account.accountId.toString()
+            )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -454,7 +464,10 @@ internal class AccountServiceTest : KoinTest {
 
         // when
         val actual =
-            accountService.deleteAccount(userId = persistedOtherUser.userId, accountId = persistedAccount.accountId)
+            accountService.deleteAccount(
+                userId = persistedOtherUser.userId.toString(),
+                accountId = persistedAccount.accountId.toString()
+            )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)

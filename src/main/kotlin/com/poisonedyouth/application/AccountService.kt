@@ -10,8 +10,8 @@ import java.util.*
 
 interface AccountService {
     fun createAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID>
-    fun updateAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID>
-    fun deleteAccount(userId: UUID, accountId: UUID): ApiResult<UUID>
+    fun updateAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID>
+    fun deleteAccount(userId: String?, accountId: String?): ApiResult<UUID>
 }
 
 class AccountServiceImpl(
@@ -77,9 +77,15 @@ class AccountServiceImpl(
         throw InvalidInputException("Given AccountDto '$this' is not valid.", e)
     }
 
-    override fun updateAccount(userId: UUID, accountDto: AccountDto): ApiResult<UUID> {
+    override fun updateAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start update of account '$accountDto' for user with userId '$userId'.")
-        val user = userRepository.findByUserId(userId)
+        val userIdResolved = try {
+            UUID.fromString(userId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+        }
+        val user = userRepository.findByUserId(userIdResolved)
         if (user == null) {
             logger.error("User with userId '$userId' not found.")
             return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
@@ -115,20 +121,32 @@ class AccountServiceImpl(
         }
     }
 
-    override fun deleteAccount(userId: UUID, accountId: UUID): ApiResult<UUID> {
+    override fun deleteAccount(userId: String?, accountId: String?): ApiResult<UUID> {
         logger.info("Start deleting of account with accountId '$accountId' for user with userId '${userId}'.")
+        val userIdResolved = try {
+            UUID.fromString(userId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+        }
+        val accountIdResolved = try {
+            UUID.fromString(accountId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given accountId '$accountId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given accountId '$accountId' is not valid.")
+        }
         try {
-            val user = userRepository.findByUserId(userId)
+            val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
                 logger.error("User with userId '$userId' not found.")
                 return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
             }
-            val existingAccount = accountRepository.findByAccountId(accountId)
+            val existingAccount = accountRepository.findByAccountId(accountIdResolved)
                 ?: return ApiResult.Failure(
                     ErrorCode.ACCOUNT_NOT_FOUND,
                     "Account with accountId '$accountId' is not available in database."
                 )
-            if (user.accounts.containsAccount(existingAccount)) {
+            if (!user.accounts.containsAccount(existingAccount)) {
                 return ApiResult.Failure(
                     ErrorCode.NOT_ALLOWED,
                     "Account with accountId '${accountId}' does not belong to user with userId '$userId'"
@@ -136,7 +154,7 @@ class AccountServiceImpl(
             }
             accountRepository.delete(existingAccount)
             logger.info("Successfully deleted account with accountId '$accountId'.")
-            return ApiResult.Success(accountId)
+            return ApiResult.Success(accountIdResolved)
         } catch (e: Exception) {
             return ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
