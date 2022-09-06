@@ -1,5 +1,6 @@
 package com.poisonedyouth.api
 
+import com.poisonedyouth.KtorServerExtension
 import com.poisonedyouth.application.ErrorCode
 import com.poisonedyouth.application.UserDto
 import com.poisonedyouth.application.UserOverviewDto
@@ -33,38 +34,16 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import java.time.LocalDate
 import java.util.*
 
+@ExtendWith(KtorServerExtension::class)
 internal class UserControllerTest : KoinTest {
 
     private val userRepository by inject<UserRepository>()
-
-    companion object {
-        private lateinit var server: NettyApplicationEngine
-
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            val env = applicationEngineEnvironment {
-                config = ApplicationConfig("application-test.conf")
-                // Public API
-                connector {
-                    host = "0.0.0.0"
-                    port = 8080
-                }
-            }
-            server = embeddedServer(Netty, env).start(false)
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun teardown() {
-            server.stop(100, 100)
-        }
-    }
 
     @BeforeEach
     fun clearDatabase() {
