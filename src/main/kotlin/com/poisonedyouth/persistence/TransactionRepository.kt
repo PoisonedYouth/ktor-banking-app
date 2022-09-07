@@ -20,7 +20,7 @@ class TransactionRepositoryImpl : TransactionRepository {
         val existingTransaction =
             TransactionEntity.find { TransactionTable.transactionId eq transaction.transactionId }.firstOrNull()
         if (existingTransaction == null) {
-            val transactionEntity = TransactionEntity.new {
+            TransactionEntity.new {
                 transactionId = transaction.transactionId
                 originEntity =
                     AccountEntity.find { AccountTable.accountId eq transaction.origin.accountId }.firstOrNull()

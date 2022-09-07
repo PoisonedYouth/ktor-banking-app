@@ -26,12 +26,7 @@ class TransactionServiceImpl(
     override fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID> {
         logger.info("Start creation of transaction '${transactionDto}.")
         return try {
-            val userIdResolved = try {
-                UUID.fromString(userId)
-            } catch (e: IllegalArgumentException) {
-                logger.error("Given userId '$userId' is not valid.", e)
-                return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
-            }
+            val userIdResolved = UUID.fromString(userId)
             val existingUser = userRepository.findByUserId(userIdResolved)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' not found.")
@@ -68,6 +63,9 @@ class TransactionServiceImpl(
             val persistedTransaction = transactionRepository.save(transaction)
             logger.info("Successfully created transaction '$persistedTransaction'.")
             ApiResult.Success(persistedTransaction.transactionId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
         } catch (e: InvalidInputException) {
             logger.error("Unable to map given dto '$transactionDto' to domain object.", e)
             ApiResult.Failure(

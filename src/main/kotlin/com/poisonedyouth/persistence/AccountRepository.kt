@@ -48,7 +48,7 @@ class AccountRepositoryImpl : AccountRepository {
     override fun updateForUser(user: User, account: Account): Account = transaction {
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
             ?: error("User with userId '${user.userId}' not persisted yet!")
-        val currentDateTime = LocalDateTime.now()
+        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
         val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
             ?: error("Account with accountId '${account.accountId} not persisted yet! ")
 
@@ -65,7 +65,7 @@ class AccountRepositoryImpl : AccountRepository {
     }
 
     override fun updateAccount(account: Account): Account = transaction {
-        val currentDateTime = LocalDateTime.now()
+        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
         val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
             ?: error("Account with accountId '${account.accountId} not persisted yet! ")
 

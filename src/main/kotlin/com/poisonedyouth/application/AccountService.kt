@@ -78,12 +78,7 @@ class AccountServiceImpl(
     override fun updateAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start update of account '$accountDto' for user with userId '$userId'.")
         return try {
-            val userIdResolved = try {
-                UUID.fromString(userId)
-            } catch (e: IllegalArgumentException) {
-                logger.error("Given userId '$userId' is not valid.", e)
-                return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
-            }
+            val userIdResolved = UUID.fromString(userId)
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
                 logger.error("User with userId '$userId' not found.")
@@ -106,6 +101,9 @@ class AccountServiceImpl(
             val updatedAccount = accountRepository.updateForUser(user = user, account = account)
             logger.info("Successfully updated account '$updatedAccount'.")
             ApiResult.Success(updatedAccount.accountId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
         } catch (e: InvalidInputException) {
             logger.error("Unable to map given dto '$accountDto' to domain object.", e)
             ApiResult.Failure(
