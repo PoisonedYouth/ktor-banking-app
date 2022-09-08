@@ -121,7 +121,9 @@ internal class UserRepositoryTest : KoinTest {
         // then
         assertThat(updatedUser).isNotNull
         assertThat(transaction { UserEntity.all().count() }).isEqualTo(1)
-        assertThat(transaction { UserEntity.find { UserTable.userId eq actual.userId }.single().firstName }).isEqualTo("Max")
+        assertThat(transaction {
+            UserEntity.find { UserTable.userId eq actual.userId }.single().firstName
+        }).isEqualTo("Max")
     }
 
     @Test

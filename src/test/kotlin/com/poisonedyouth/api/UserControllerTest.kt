@@ -10,6 +10,16 @@ import com.poisonedyouth.persistence.UserEntity
 import com.poisonedyouth.persistence.UserRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
+import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.delete
@@ -20,7 +30,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.kotlinx.json.jackson.jackson
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.engine.connector
@@ -99,7 +109,7 @@ internal class UserControllerTest : KoinTest {
         val result = response.body<ErrorDto>()
         assertThat(result.errorMessage).isEqualTo(
             "Given UserDto 'UserDto(userId=null, firstName=John, lastName=Doe, " +
-                    "birthdate=01.01.2022, password=Ta1&tudol3lal54e)' is not valid."
+                "birthdate=01.01.2022, password=Ta1&tudol3lal54e)' is not valid."
         )
         assertThat(result.errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
     }
@@ -274,7 +284,7 @@ internal class UserControllerTest : KoinTest {
     }
 
     private fun createHttpClient(): HttpClient {
-        val client = HttpClient{
+        val client = HttpClient {
             install(ContentNegotiation) {
                 jackson()
             }
