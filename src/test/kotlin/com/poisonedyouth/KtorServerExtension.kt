@@ -1,5 +1,8 @@
 package com.poisonedyouth
 
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.jackson.jackson
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.engine.connector
@@ -30,4 +33,13 @@ class KtorServerExtension : BeforeAllCallback, AfterAllCallback {
     override fun afterAll(context: ExtensionContext?) {
         server.stop(100, 100)
     }
+}
+
+fun createHttpClient(): HttpClient {
+    val client = HttpClient {
+        install(ContentNegotiation) {
+            jackson()
+        }
+    }
+    return client
 }

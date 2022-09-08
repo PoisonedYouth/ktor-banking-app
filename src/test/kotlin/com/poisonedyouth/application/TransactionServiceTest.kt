@@ -202,7 +202,7 @@ internal class TransactionServiceTest : KoinTest {
             birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val persistedUser = userRepository.save(user)
+        userRepository.save(user)
 
         val account = Account(
             name = "My Account",

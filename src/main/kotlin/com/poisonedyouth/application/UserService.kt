@@ -21,7 +21,7 @@ interface UserService {
 }
 
 private const val BIRTH_DATE_FORMAT = "dd.MM.yyyy"
-private const val TIME_STAMP_FORMAT = "dd.MM.yyyy HH:mm:ss"
+const val TIME_STAMP_FORMAT = "dd.MM.yyyy HH:mm:ss"
 
 class UserServiceImpl(
     private val userRepository: UserRepository

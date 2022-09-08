@@ -1,5 +1,6 @@
 package com.poisonedyouth.plugins
 
+import com.poisonedyouth.api.AccountController
 import com.poisonedyouth.api.UserController
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -13,8 +14,9 @@ import org.koin.ktor.ext.inject
 
 fun Application.configureRouting() {
     val userController by inject<UserController>()
+    val accountController by inject<AccountController>()
 
-    routing{
+    routing {
         route("/api/user") {
             get("/{userId}") {
                 userController.getExistingUser(call)
@@ -33,15 +35,16 @@ fun Application.configureRouting() {
             }
         }
         route("/api/user/{userId}/account") {
-            get("/{accountId}"){
+            get("/{accountId}") {
+                accountController.getExistingAccount(call)
             }
-            post(""){
+            post("") {
 
             }
             put("") {
 
             }
-            delete("/{accountId}"){
+            delete("/{accountId}") {
 
             }
         }

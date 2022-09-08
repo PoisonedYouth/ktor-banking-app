@@ -5,22 +5,11 @@ import com.poisonedyouth.application.ErrorCode
 import com.poisonedyouth.application.UserDto
 import com.poisonedyouth.application.UserOverviewDto
 import com.poisonedyouth.application.UserPasswordChangeDto
+import com.poisonedyouth.createHttpClient
 import com.poisonedyouth.domain.User
 import com.poisonedyouth.persistence.UserEntity
 import com.poisonedyouth.persistence.UserRepository
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -30,18 +19,9 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.jackson.jackson
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.engine.applicationEngineEnvironment
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.netty.NettyApplicationEngine
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -132,6 +112,8 @@ internal class UserControllerTest : KoinTest {
         val response = client.get("http://localhost:8080/api/user/${user.userId}") {
             accept(ContentType.Application.Json)
         }
+
+        // then
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
         val result = response.body<SuccessDto<UserOverviewDto>>()
         result.run {
@@ -161,6 +143,8 @@ internal class UserControllerTest : KoinTest {
         val response = client.get("http://localhost:8080/api/user/invalid_userId") {
             accept(ContentType.Application.Json)
         }
+
+        // then
         assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
         val result = response.body<ErrorDto>()
         assertThat(result.errorMessage).isEqualTo("Given userId 'invalid_userId' is not valid.")
@@ -194,6 +178,8 @@ internal class UserControllerTest : KoinTest {
             )
             contentType(ContentType.Application.Json)
         }
+
+        // then
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
         val result = response.body<SuccessDto<UUID>>()
         assertThat(result).isNotNull
@@ -228,6 +214,8 @@ internal class UserControllerTest : KoinTest {
             )
             contentType(ContentType.Application.Json)
         }
+
+        // then
         assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
         val result = response.body<ErrorDto>()
         assertThat(result.errorMessage).isEqualTo("User with userId '$userId' does not exist in database.")
@@ -252,6 +240,8 @@ internal class UserControllerTest : KoinTest {
         val response = client.delete("http://localhost:8080/api/user/${user.userId}") {
             contentType(ContentType.Application.Json)
         }
+
+        // then
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
         val result = response.body<SuccessDto<UUID>>()
         assertThat(result).isNotNull
@@ -277,21 +267,13 @@ internal class UserControllerTest : KoinTest {
         val response = client.delete("http://localhost:8080/api/user/${userId}") {
             contentType(ContentType.Application.Json)
         }
+
+        // then
         assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
         val result = response.body<ErrorDto>()
         assertThat(result.errorMessage).isEqualTo("User with userId '$userId' does not exist in database.")
         assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
     }
-
-    private fun createHttpClient(): HttpClient {
-        val client = HttpClient {
-            install(ContentNegotiation) {
-                jackson()
-            }
-        }
-        return client
-    }
-
     @Test
     fun `updatePassword is possible`() = runBlocking<Unit> {
         // given
@@ -317,6 +299,8 @@ internal class UserControllerTest : KoinTest {
             )
             contentType(ContentType.Application.Json)
         }
+
+        // then
         assertThat(response.status).isEqualTo(HttpStatusCode.OK)
         val result = response.body<SuccessDto<UUID>>()
         assertThat(result).isNotNull
@@ -348,6 +332,8 @@ internal class UserControllerTest : KoinTest {
             )
             contentType(ContentType.Application.Json)
         }
+
+        // then
         assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
         val result = response.body<ErrorDto>()
         assertThat(result.errorMessage).isEqualTo("The new password cannot be the same as the existing one.")

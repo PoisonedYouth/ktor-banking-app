@@ -6,12 +6,14 @@ import com.poisonedyouth.persistence.AccountRepository
 import com.poisonedyouth.persistence.UserRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 interface AccountService {
     fun createAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID>
     fun updateAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID>
     fun deleteAccount(userId: String?, accountId: String?): ApiResult<UUID>
+    fun findByUserIdAndAccountId(userId: String?, accountId: String?): ApiResult<AccountOverviewDto>
 }
 
 class AccountServiceImpl(
@@ -145,6 +147,51 @@ class AccountServiceImpl(
         } catch (e: IllegalArgumentException) {
             logger.error("Given userId '$userId' is not valid.", e)
             return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+        } catch (e: Exception) {
+            logger.error("Account with accountId '${accountId}' cannot be deleted.", e)
+            ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Account with accountId '${accountId}' cannot be deleted."
+            )
+        }
+    }
+
+    override fun findByUserIdAndAccountId(userId: String?, accountId: String?): ApiResult<AccountOverviewDto> {
+        logger.info("Start finding of account with accountId '$accountId' for user with userId '${userId}'.")
+        return try {
+            val userIdResolved = UUID.fromString(userId)
+            val user = userRepository.findByUserId(userIdResolved)
+            if (user == null) {
+                logger.error("User with userId '$userId' not found.")
+                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+            }
+            val accountIdIdResolved = UUID.fromString(accountId)
+            val existingAccount = accountRepository.findByAccountId(accountIdIdResolved)
+                ?: return ApiResult.Failure(
+                    ErrorCode.ACCOUNT_NOT_FOUND,
+                    "Account with accountId '$accountId' is not available in database."
+                )
+            if (user.accounts.notContainsAccount(existingAccount)) {
+                return ApiResult.Failure(
+                    ErrorCode.NOT_ALLOWED,
+                    "Account with accountId '${accountId}' does not belong to user with userId '$userId'"
+                )
+            }
+            logger.info("Successfully found account with accountId '$accountId'.")
+            ApiResult.Success(
+                AccountOverviewDto(
+                    name = existingAccount.name,
+                    accountId = existingAccount.accountId,
+                    balance = existingAccount.balance,
+                    dispo = existingAccount.dispo,
+                    limit = existingAccount.limit,
+                    created = existingAccount.created.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
+                    lastUpdated = existingAccount.lastUpdated.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT))
+                )
+            )
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' or '$accountId' is not valid.", e)
+            ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' or '$accountId' is not valid.")
         } catch (e: Exception) {
             logger.error("Account with accountId '${accountId}' cannot be deleted.", e)
             ApiResult.Failure(
