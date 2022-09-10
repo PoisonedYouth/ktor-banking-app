@@ -49,4 +49,14 @@ class AccountController(
             }
         }
     }
+    suspend fun deleteAccount(call: ApplicationCall) {
+        when (val result =
+            accountService.deleteAccount(userId = call.parameters["userId"], call.parameters["accountId"])) {
+            is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(httpStatusCode, ErrorDto(errorCode = result.errorCode, errorMessage = result.errorMessage))
+            }
+        }
+    }
 }

@@ -45,7 +45,7 @@ fun Application.configureRouting() {
                 accountController.updateExistingAccount(call)
             }
             delete("/{accountId}") {
-
+                accountController.deleteAccount(call)
             }
         }
     }

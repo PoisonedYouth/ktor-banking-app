@@ -16,6 +16,7 @@ import com.poisonedyouth.persistence.UserEntity
 import com.poisonedyouth.persistence.UserRepository
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
@@ -216,12 +217,13 @@ internal class AccountControllerTest : KoinTest {
             )
         )
 
-        val account = accountRepository.saveForUser(user = user, account = Account(
-            name = "My account",
-            balance = 100.0,
-            limit = 100.0,
-            dispo = -200.0
-        )
+        val account = accountRepository.saveForUser(
+            user = user, account = Account(
+                name = "My account",
+                balance = 100.0,
+                limit = 100.0,
+                dispo = -200.0
+            )
         )
 
         // when
@@ -279,6 +281,77 @@ internal class AccountControllerTest : KoinTest {
                     limit = 200.0
                 )
             )
+            contentType(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo(
+            "Account with accountId '${account.accountId}' does not exist in database."
+        )
+        assertThat(result.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+    }
+
+    @Test
+    fun deleteAccount() = runBlocking {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        val account = accountRepository.saveForUser(
+            user = user, account = Account(
+                name = "My account",
+                balance = 100.0,
+                limit = 100.0,
+                dispo = -200.0
+            )
+        )
+
+        // when
+        val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
+            contentType(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val result = response.body<SuccessDto<UUID>>()
+        assertThat(result).isNotNull
+        assertThat(accountRepository.findByAccountId(result.value)).isNotNull()
+        assertThat(accountRepository.findAllForUser(user.userId)).isEmpty()
+    }
+
+    @Test
+    fun `deleteAccount fails if account does not exist`() = runBlocking {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        val account = Account(
+            name = "My account",
+            balance = 100.0,
+            limit = 100.0,
+            dispo = -200.0
+        )
+
+        // when
+        val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
             contentType(ContentType.Application.Json)
         }
 
