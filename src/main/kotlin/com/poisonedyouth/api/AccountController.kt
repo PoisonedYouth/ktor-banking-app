@@ -21,4 +21,18 @@ class AccountController(
             }
         }
     }
+
+    suspend fun createNewAccount(call: ApplicationCall) {
+        when (val result =
+            accountService.createAccount(userId = call.parameters["userId"], call.receive())) {
+            is Success -> call.respond(HttpStatusCode.Created, SuccessDto(result.value))
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(
+                    httpStatusCode,
+                    ErrorDto(errorCode = result.errorCode, errorMessage = result.errorMessage)
+                )
+            }
+        }
+    }
 }

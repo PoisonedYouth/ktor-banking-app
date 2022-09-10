@@ -39,10 +39,10 @@ fun Application.configureRouting() {
                 accountController.getExistingAccount(call)
             }
             post("") {
-
+                accountController.createNewAccount(call)
             }
             put("") {
-
+                
             }
             delete("/{accountId}") {
 
