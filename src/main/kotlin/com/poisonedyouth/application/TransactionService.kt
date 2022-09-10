@@ -12,6 +12,7 @@ import java.util.*
 
 interface TransactionService {
     fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID>
+    fun getTransaction(userId: String?, transactionId: String?): ApiResult<TransactionDto>
     fun deleteTransaction(transactionId: String?): ApiResult<UUID>
 }
 
@@ -138,4 +139,60 @@ class TransactionServiceImpl(
 
         }
     }
+
+    override fun getTransaction(userId: String?, transactionId: String?): ApiResult<TransactionDto> {
+        logger.info("Start finding of transaction with transactionId '$transactionId'.")
+        return try {
+            val userIdResolved = UUID.fromString(userId)
+            val existingUser = userRepository.findByUserId(userIdResolved)
+            if (existingUser == null) {
+                logger.error("User with userId '$userId' does not exist in database.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
+            }
+            val transactionIdResolved = UUID.fromString(transactionId)
+
+            val existingTransaction = transactionRepository.findByTransactionId(transactionIdResolved)
+            if (existingTransaction == null) {
+                logger.error("Transaction with transactionId '$transactionId' cannot be found.")
+                return ApiResult.Failure(
+                    ErrorCode.TRANSACTION_NOT_FOUND,
+                    "Transaction with transactionId '$transactionId' cannot be found."
+                )
+            }
+
+            if (existingUser.accounts.notContainsAccount(existingTransaction.origin, existingTransaction.target)) {
+                logger.error("Transaction with transactionId '$transactionId' does not belong to user with userId '$userId'.")
+                return ApiResult.Failure(
+                    ErrorCode.NOT_ALLOWED,
+                    "Transaction with transactionId '$transactionId' does not belong to user with userId '$userId'."
+                )
+            }
+
+            logger.info("Successfully find transaction with transactionId '$transactionId'.")
+            ApiResult.Success(existingTransaction.toTransactionDto())
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given transactionId '$transactionId' or userId '$userId' is not valid.", e)
+            return ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                "Given transactionId '$transactionId' or userId '$userId' is not valid."
+            )
+        } catch (e: Exception) {
+            logger.error("Cannot delete transaction with transactionId '$transactionId' from database.", e)
+            ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Cannot find transaction with transactionId '$transactionId' in database."
+            )
+
+        }
+    }
+
+    private fun Transaction.toTransactionDto() = TransactionDto(
+        transactionId = this.transactionId,
+        origin = this.origin.accountId,
+        target = this.target.accountId,
+        amount = this.amount
+    )
 }

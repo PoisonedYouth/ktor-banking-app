@@ -91,7 +91,10 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
+            transactionService.createTransaction(
+                userId = persistedUser.userId.toString(),
+                transactionDto = transactionDto
+            )
 
         // then
         assertThat(actual).isInstanceOf(Success::class.java)
@@ -186,7 +189,10 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
+            transactionService.createTransaction(
+                userId = persistedUser.userId.toString(),
+                transactionDto = transactionDto
+            )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -281,7 +287,10 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = otherPersistedUser.userId.toString(), transactionDto = transactionDto)
+            transactionService.createTransaction(
+                userId = otherPersistedUser.userId.toString(),
+                transactionDto = transactionDto
+            )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -329,7 +338,10 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
+            transactionService.createTransaction(
+                userId = persistedUser.userId.toString(),
+                transactionDto = transactionDto
+            )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -377,7 +389,10 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
+            transactionService.createTransaction(
+                userId = persistedUser.userId.toString(),
+                transactionDto = transactionDto
+            )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -425,7 +440,10 @@ internal class TransactionServiceTest : KoinTest {
 
         // when
         val actual =
-            transactionService.createTransaction(userId = persistedUser.userId.toString(), transactionDto = transactionDto)
+            transactionService.createTransaction(
+                userId = persistedUser.userId.toString(),
+                transactionDto = transactionDto
+            )
 
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
@@ -531,5 +549,348 @@ internal class TransactionServiceTest : KoinTest {
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.TRANSACTION_NOT_FOUND)
+    }
+
+    @Test
+    fun `getTransaction is possible`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        // when
+        val actual = transactionService.getTransaction(
+            userId = persistedUser.userId.toString(),
+            transactionId = persistedTransaction.transactionId.toString()
+        )
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        (actual as Success).value.run {
+            assertThat(this.transactionId).isEqualTo(persistedTransaction.transactionId)
+            assertThat(this.origin).isEqualTo(persistedTransaction.origin.accountId)
+            assertThat(this.target).isEqualTo(persistedTransaction.target.accountId)
+            assertThat(this.amount).isEqualTo(persistedTransaction.amount)
+        }
+    }
+
+    @Test
+    fun `getTransaction fails if userId is invalid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        // when
+        val actual = transactionService.getTransaction(
+            userId = "INVALID_USERID",
+            transactionId = persistedTransaction.transactionId.toString()
+        )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
+    fun `getTransaction fails if transactionId is invalid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        // when
+        val actual = transactionService.getTransaction(
+            userId = persistedUser.userId.toString(),
+            transactionId = "INVALID_TRANSACTIONID"
+        )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
+    fun `getTransaction fails if user does not exist`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        // when
+        val actual = transactionService.getTransaction(
+            userId = UUID.randomUUID().toString(),
+            transactionId = persistedTransaction.transactionId.toString()
+        )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun `getTransaction fails if transaction does not exist`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        // when
+        val actual = transactionService.getTransaction(
+            userId = persistedUser.userId.toString(),
+            transactionId = UUID.randomUUID().toString()
+        )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.TRANSACTION_NOT_FOUND)
+    }
+
+    @Test
+    fun `getTransaction fails if transaction does not belong to user`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        val extraUser = User(
+            firstName = "Peter",
+            lastName = "Griffin",
+            birthdate = LocalDate.of(1985, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedExtraUser = userRepository.save(extraUser)
+
+        // when
+        val actual = transactionService.getTransaction(
+            userId = persistedExtraUser.userId.toString(),
+            transactionId = persistedTransaction.transactionId.toString()
+        )
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.NOT_ALLOWED)
     }
 }

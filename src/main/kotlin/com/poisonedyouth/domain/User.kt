@@ -33,4 +33,5 @@ data class User(
     }
 }
 
-fun List<Account>.notContainsAccount(account: Account) = this.find { it.accountId == account.accountId } == null
+fun List<Account>.notContainsAccount(vararg accounts: Account) =
+    this.find { account -> account.accountId in (accounts.map { it.accountId }) } == null
