@@ -18,6 +18,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -196,8 +197,97 @@ internal class AccountControllerTest : KoinTest {
         assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
         val result = response.body<ErrorDto>()
         assertThat(result.errorMessage).isEqualTo(
-            "User with userId '${user.userId}' not found."
+            "User with userId '${user.userId}' does not exist in database."
         )
         assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun updateExistingAccount() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        val account = accountRepository.saveForUser(user = user, account = Account(
+            name = "My account",
+            balance = 100.0,
+            limit = 100.0,
+            dispo = -200.0
+        )
+        )
+
+        // when
+        val response = client.put("http://localhost:8080/api/user/${user.userId}/account") {
+            setBody(
+                AccountDto(
+                    accountId = account.accountId,
+                    name = "My other Account",
+                    dispo = -500.0,
+                    limit = 200.0
+                )
+            )
+            contentType(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val result = response.body<SuccessDto<UUID>>()
+        assertThat(result).isNotNull
+        accountRepository.findByAccountId(result.value)!!.run {
+            assertThat(this.balance).isEqualTo(account.balance)
+            assertThat(this.dispo).isEqualTo(-500.0)
+            assertThat(this.limit).isEqualTo(200.0)
+        }
+    }
+
+    @Test
+    fun `updateExistingAccount fails if account does not exist yet`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        val account = Account(
+            name = "My account",
+            balance = 100.0,
+            limit = 100.0,
+            dispo = -200.0
+        )
+
+        // when
+        val response = client.put("http://localhost:8080/api/user/${user.userId}/account") {
+            setBody(
+                AccountDto(
+                    accountId = account.accountId,
+                    name = "My other Account",
+                    dispo = -500.0,
+                    limit = 200.0
+                )
+            )
+            contentType(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo(
+            "Account with accountId '${account.accountId}' does not exist in database."
+        )
+        assertThat(result.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
     }
 }

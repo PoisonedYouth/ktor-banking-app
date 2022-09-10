@@ -29,8 +29,11 @@ class AccountServiceImpl(
             val userIdResolved = UUID.fromString(userId)
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
-                logger.error("User with userId '$userId' not found.")
-                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+                logger.error("User with userId '$userId' does not exist in database.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
             }
             val account = accountDto.toAccount()
             if (accountRepository.findByAccountId(account.accountId) != null) {
@@ -83,16 +86,20 @@ class AccountServiceImpl(
             val userIdResolved = UUID.fromString(userId)
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
-                logger.error("User with userId '$userId' not found.")
-                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
-            }
-            if (accountDto.accountId == null || accountRepository.findByAccountId(accountDto.accountId) == null) {
+                logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
+            }
+            val existingAccount = accountDto.accountId?.let { accountRepository.findByAccountId(it) }
+                ?: return ApiResult.Failure(
                     ErrorCode.ACCOUNT_NOT_FOUND,
                     "Account with accountId '${accountDto.accountId}' does not exist in database."
                 )
-            }
-            val account = accountDto.toAccount()
+            val account = accountDto.toAccount().copy(
+                balance = existingAccount.balance
+            )
             if (user.accounts.notContainsAccount(account)) {
                 logger.error("Account with accountId '${account.accountId}' does not belong to user with userId '$userId'")
                 return ApiResult.Failure(
@@ -127,13 +134,16 @@ class AccountServiceImpl(
 
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
-                logger.error("User with userId '$userId' not found.")
-                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+                logger.error("User with userId '$userId' does not exist in database.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
             }
             val existingAccount = accountRepository.findByAccountId(accountIdResolved)
                 ?: return ApiResult.Failure(
                     ErrorCode.ACCOUNT_NOT_FOUND,
-                    "Account with accountId '$accountId' is not available in database."
+                    "Account with accountId '$accountId' does not exist in database."
                 )
             if (user.accounts.notContainsAccount(existingAccount)) {
                 return ApiResult.Failure(
@@ -162,14 +172,17 @@ class AccountServiceImpl(
             val userIdResolved = UUID.fromString(userId)
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
-                logger.error("User with userId '$userId' not found.")
-                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+                logger.error("User with userId '$userId' does not exist in database.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
             }
             val accountIdIdResolved = UUID.fromString(accountId)
             val existingAccount = accountRepository.findByAccountId(accountIdIdResolved)
                 ?: return ApiResult.Failure(
                     ErrorCode.ACCOUNT_NOT_FOUND,
-                    "Account with accountId '$accountId' is not available in database."
+                    "Account with accountId '$accountId' does not exist in database."
                 )
             if (user.accounts.notContainsAccount(existingAccount)) {
                 return ApiResult.Failure(

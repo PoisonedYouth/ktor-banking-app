@@ -42,7 +42,7 @@ fun Application.configureRouting() {
                 accountController.createNewAccount(call)
             }
             put("") {
-                
+                accountController.updateExistingAccount(call)
             }
             delete("/{accountId}") {
 

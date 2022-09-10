@@ -35,4 +35,18 @@ class AccountController(
             }
         }
     }
+
+    suspend fun updateExistingAccount(call: ApplicationCall) {
+        when (val result =
+            accountService.updateAccount(userId = call.parameters["userId"], call.receive())) {
+            is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(
+                    httpStatusCode,
+                    ErrorDto(errorCode = result.errorCode, errorMessage = result.errorMessage)
+                )
+            }
+        }
+    }
 }

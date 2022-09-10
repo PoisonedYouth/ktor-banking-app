@@ -29,8 +29,11 @@ class TransactionServiceImpl(
             val userIdResolved = UUID.fromString(userId)
             val existingUser = userRepository.findByUserId(userIdResolved)
             if (existingUser == null) {
-                logger.error("User with userId '$userId' not found.")
-                return ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' not found.")
+                logger.error("User with userId '$userId' does not exist in database.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
             }
             val origin = accountRepository.findByAccountId(transactionDto.origin)
                 ?: return ApiResult.Failure(

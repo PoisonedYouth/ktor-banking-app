@@ -90,7 +90,7 @@ class UserServiceImpl(
 
             val existingUser = userRepository.findByUserId(userIdResolved)
             if (existingUser == null) {
-                logger.error("User with userId '$userId' not found.")
+                logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
                     ErrorCode.USER_NOT_FOUND,
                     "User with userId '$userId' does not exist in database."
@@ -141,7 +141,7 @@ class UserServiceImpl(
             val userIdResolved = UUID.fromString(userId)
             val user = userRepository.findByUserId(userIdResolved)
             if (user == null) {
-                logger.error("User with userId '$userId' not found.")
+                logger.error("User with userId '$userId' does not exist in database.")
                 ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' does not exist in database.")
             } else {
                 logger.info("Successfully found user with userId '$userId'.")
@@ -189,7 +189,7 @@ class UserServiceImpl(
         return try {
             val existingUser = userRepository.findByUserId(userPasswordChangeDto.userId)
             if (existingUser == null) {
-                logger.error("User with userId '${userPasswordChangeDto.userId}' not found in database.")
+                logger.error("User with userId '${userPasswordChangeDto.userId}' does not exist in database.")
                 return ApiResult.Failure(
                     ErrorCode.USER_NOT_FOUND,
                     "User with userId '$userPasswordChangeDto' does not exist in database."
