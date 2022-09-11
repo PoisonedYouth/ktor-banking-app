@@ -12,6 +12,7 @@ interface TransactionRepository {
     fun save(transaction: Transaction): Transaction
     fun findAllByAccount(account: Account): List<Transaction>
     fun findByTransactionId(transactionId: UUID): Transaction?
+    fun delete(transaction: Transaction)
 }
 
 class TransactionRepositoryImpl : TransactionRepository {
@@ -46,6 +47,15 @@ class TransactionRepositoryImpl : TransactionRepository {
 
     override fun findByTransactionId(transactionId: UUID): Transaction? = transaction {
         TransactionEntity.find { TransactionTable.transactionId eq transactionId }.firstOrNull()?.toTransaction()
+    }
+
+    override fun delete(transaction: Transaction) = transaction {
+        val existingTransaction =
+            TransactionEntity.find { TransactionTable.transactionId eq transaction.transactionId }.firstOrNull()
+        if (existingTransaction == null) {
+            error("Transaction with transactionId '${transaction.transactionId}' does not exist in database.")
+        }
+        existingTransaction.delete()
     }
 }
 

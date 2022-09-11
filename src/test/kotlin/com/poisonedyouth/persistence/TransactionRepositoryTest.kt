@@ -478,4 +478,92 @@ class TransactionRepositoryTest : KoinTest {
         // then
         assertThat(actual).isNull()
     }
+
+    @Test
+    fun `deleteTransaction deletes matching transaction`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+        val otherAccount = Account(
+            name = "Other account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedOtherAccount = accountRepository.saveForUser(persistedUser, otherAccount)
+
+        val transaction = Transaction(
+            transactionId = UUID.randomUUID(),
+            origin = persistedAccount,
+            target = persistedOtherAccount,
+            amount = 60.0
+        )
+        val persistedTransaction = transactionRepository.save(transaction)
+
+        // when
+        transactionRepository.delete(persistedTransaction)
+
+        // then
+        assertThat(transactionRepository.findByTransactionId(persistedTransaction.transactionId)).isNull()
+    }
+
+    @Test
+    fun `deleteTransaction fails if transaction does not exist`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+        val otherAccount = Account(
+            name = "Other account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedOtherAccount = accountRepository.saveForUser(persistedUser, otherAccount)
+
+        val transaction = Transaction(
+            transactionId = UUID.randomUUID(),
+            origin = persistedAccount,
+            target = persistedOtherAccount,
+            amount = 60.0
+        )
+
+        // when + then
+        assertThatThrownBy {
+            transactionRepository.delete(transaction)
+        }.isInstanceOf(IllegalStateException::class.java)
+    }
 }
