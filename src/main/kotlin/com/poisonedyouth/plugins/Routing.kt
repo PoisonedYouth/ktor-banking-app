@@ -1,6 +1,7 @@
 package com.poisonedyouth.plugins
 
 import com.poisonedyouth.api.AccountController
+import com.poisonedyouth.api.TransactionController
 import com.poisonedyouth.api.UserController
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -15,6 +16,7 @@ import org.koin.ktor.ext.inject
 fun Application.configureRouting() {
     val userController by inject<UserController>()
     val accountController by inject<AccountController>()
+    val transactionController by inject<TransactionController>()
 
     routing {
         route("/api/user") {
@@ -46,6 +48,14 @@ fun Application.configureRouting() {
             }
             delete("/{accountId}") {
                 accountController.deleteAccount(call)
+            }
+        }
+        route("/api/user/{userId}/transaction") {
+            get("/{transactionId}") {
+                transactionController.getExistingTransaction(call)
+            }
+            post("") {
+                transactionController.createNewTransaction(call)
             }
         }
     }

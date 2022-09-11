@@ -58,7 +58,7 @@ class TransactionServiceImpl(
                 return ApiResult.Failure(ErrorCode.TRANSACTION_REQUEST_INVALID, "Not enough balance for transaction.")
             }
             if (origin.limit < transactionDto.amount) {
-                logger.error("Origin account with accountId '${origin.accountId}' has not enough balance for transaction.")
+                logger.error("Origin account with accountId '${origin.accountId}' has not enough limit for transaction.")
                 return ApiResult.Failure(ErrorCode.TRANSACTION_REQUEST_INVALID, "Not enough balance for transaction.")
             }
 
