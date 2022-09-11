@@ -125,8 +125,9 @@ class TransactionServiceImpl(
                 balance = existingTransaction.origin.balance - existingTransaction.amount
             )
             accountRepository.updateAccount(target)
+            transactionRepository.delete(existingTransaction)
             logger.info("Successfully deleted transaction with transactionId '$transactionId'.")
-            ApiResult.Success(transactionIdResolved)
+            ApiResult.Success(existingTransaction.transactionId)
         } catch (e: IllegalArgumentException) {
             logger.error("Given transactionId '$transactionId' is not valid.", e)
             return ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given transactionId '$transactionId' is not valid.")
