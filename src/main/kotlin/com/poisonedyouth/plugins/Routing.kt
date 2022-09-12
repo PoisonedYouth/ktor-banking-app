@@ -58,5 +58,16 @@ fun Application.configureRouting() {
                 transactionController.createNewTransaction(call)
             }
         }
+        route("/api/administrator"){
+            delete("/transaction/{transactionId}"){
+                transactionController.deleteTransaction(call)
+            }
+            put("/user/{userid}/password") {
+                userController.resetUserPassword(call)
+            }
+            get("/transaction"){
+                transactionController.getAllExistingTransaction(call)
+            }
+        }
     }
 }
