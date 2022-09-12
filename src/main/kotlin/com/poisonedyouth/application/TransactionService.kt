@@ -110,10 +110,10 @@ class TransactionServiceImpl(
 
             val existingTransaction = transactionRepository.findByTransactionId(transactionIdResolved)
             if (existingTransaction == null) {
-                logger.error("Transaction with transactionId '$transactionId' cannot be found.")
+                logger.error("Transaction with transactionId '$transactionId' does not exist in database.")
                 return ApiResult.Failure(
                     ErrorCode.TRANSACTION_NOT_FOUND,
-                    "Transaction with transactionId '$transactionId' cannot be found."
+                    "Transaction with transactionId '$transactionId' does not exist in database."
                 )
             }
             val origin = existingTransaction.origin.copy(
@@ -122,7 +122,7 @@ class TransactionServiceImpl(
             accountRepository.updateAccount(origin)
 
             val target = existingTransaction.target.copy(
-                balance = existingTransaction.origin.balance - existingTransaction.amount
+                balance = existingTransaction.target.balance - existingTransaction.amount
             )
             accountRepository.updateAccount(target)
             transactionRepository.delete(existingTransaction)

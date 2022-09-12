@@ -501,7 +501,7 @@ internal class TransactionServiceTest : KoinTest {
         assertThat(actual).isInstanceOf(Success::class.java)
         assertThat((actual as Success).value).isNotNull
         assertThat(accountRepository.findByAccountId(persistedTransaction.origin.accountId)!!.balance).isEqualTo(200.0)
-        assertThat(accountRepository.findByAccountId(persistedTransaction.target.accountId)!!.balance).isEqualTo(0.0)
+        assertThat(accountRepository.findByAccountId(persistedTransaction.target.accountId)!!.balance).isEqualTo(-100.0)
         assertThat(transactionRepository.findByTransactionId(persistedTransaction.transactionId)).isNull()
     }
 

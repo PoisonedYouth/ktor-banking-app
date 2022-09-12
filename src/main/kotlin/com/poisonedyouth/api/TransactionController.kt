@@ -33,4 +33,19 @@ class TransactionController(
             }
         }
     }
+
+    suspend fun deleteTransaction(call: ApplicationCall) {
+        when (val result =
+            transactionService.deleteTransaction(transactionId = call.parameters["transactionId"])) {
+            is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(httpStatusCode, ErrorDto(errorCode = result.errorCode, errorMessage = result.errorMessage))
+            }
+        }
+    }
+
+    suspend fun getAllExistingTransaction(call: ApplicationCall) {
+
+    }
 }

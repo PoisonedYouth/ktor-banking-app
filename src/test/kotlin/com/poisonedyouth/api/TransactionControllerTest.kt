@@ -15,6 +15,7 @@ import com.poisonedyouth.persistence.UserEntity
 import com.poisonedyouth.persistence.UserRepository
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -276,5 +277,122 @@ internal class TransactionControllerTest : KoinTest {
         assertThat(result.errorMessage)
             .isEqualTo("Account with accountId '${account.accountId}' does not exist in database.")
         assertThat(result.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+    }
+
+    @Test
+    fun deleteExistingTransaction() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 300.0,
+            balance = 400.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+        val persistedTransaction = transactionRepository.save(transaction)
+
+
+        // when
+        val response = client.delete(
+            "http://localhost:8080//api/administrator/transaction/${persistedTransaction.transactionId}"
+        ) {
+            accept(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val result = response.body<SuccessDto<UUID>>()
+        assertThat(transactionRepository.findByTransactionId(result.value)).isNull()
+        assertThat(accountRepository.findByAccountId(account.accountId)!!.balance).isEqualTo(500.0)
+        assertThat(accountRepository.findByAccountId(otherAccount.accountId)!!.balance).isEqualTo(-100.0)
+    }
+
+    @Test
+    fun `deleteExistingTransaction if transaction does not exist`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 300.0,
+            balance = 400.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+
+        // when
+        val response = client.delete(
+            "http://localhost:8080//api/administrator/transaction/${transaction.transactionId}"
+        ) {
+            accept(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage)
+            .isEqualTo("Transaction with transactionId '${transaction.transactionId}' does not exist in database.")
+        assertThat(result.errorCode).isEqualTo(ErrorCode.TRANSACTION_NOT_FOUND)
     }
 }
