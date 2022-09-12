@@ -46,6 +46,13 @@ class TransactionController(
     }
 
     suspend fun getAllExistingTransaction(call: ApplicationCall) {
-
+        when (val result =
+            transactionService.getAllTransactions()) {
+            is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(httpStatusCode, ErrorDto(errorCode = result.errorCode, errorMessage = result.errorMessage))
+            }
+        }
     }
 }

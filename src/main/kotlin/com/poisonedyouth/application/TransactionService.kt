@@ -14,6 +14,7 @@ interface TransactionService {
     fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID>
     fun getTransaction(userId: String?, transactionId: String?): ApiResult<TransactionDto>
     fun deleteTransaction(transactionId: String?): ApiResult<UUID>
+    fun getAllTransactions(): ApiResult<List<TransactionDto>>
 }
 
 class TransactionServiceImpl(
@@ -185,6 +186,20 @@ class TransactionServiceImpl(
             ApiResult.Failure(
                 ErrorCode.DATABASE_ERROR,
                 "Cannot find transaction with transactionId '$transactionId' in database."
+            )
+
+        }
+    }
+
+    override fun getAllTransactions(): ApiResult<List<TransactionDto>> {
+        logger.info("Start loading all transactions.")
+        return try {
+            ApiResult.Success(transactionRepository.findAll().map { it.toTransactionDto() })
+        } catch (e: Exception) {
+            logger.error("Cannot load transactions from database.", e)
+            ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Cannot load transactions from database."
             )
 
         }

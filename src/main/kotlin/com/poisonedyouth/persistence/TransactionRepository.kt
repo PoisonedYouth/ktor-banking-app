@@ -6,13 +6,14 @@ import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import java.util.*
 
 interface TransactionRepository {
     fun save(transaction: Transaction): Transaction
     fun findAllByAccount(account: Account): List<Transaction>
     fun findByTransactionId(transactionId: UUID): Transaction?
     fun delete(transaction: Transaction)
+    fun findAll(): List<Transaction>
 }
 
 class TransactionRepositoryImpl : TransactionRepository {
@@ -56,6 +57,10 @@ class TransactionRepositoryImpl : TransactionRepository {
             error("Transaction with transactionId '${transaction.transactionId}' does not exist in database.")
         }
         existingTransaction.delete()
+    }
+
+    override fun findAll(): List<Transaction> = transaction {
+        TransactionEntity.all().map { it.toTransaction() }
     }
 }
 

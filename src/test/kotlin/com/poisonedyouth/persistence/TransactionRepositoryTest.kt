@@ -566,4 +566,68 @@ class TransactionRepositoryTest : KoinTest {
             transactionRepository.delete(transaction)
         }.isInstanceOf(IllegalStateException::class.java)
     }
+
+    @Test
+    fun `findAll returns matching transactions`() {
+        // given
+        val user = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedUser = userRepository.save(user)
+
+        val otherUser = User(
+            userId = UUID.randomUUID(),
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            accounts = listOf()
+        )
+        val persistedOtherUser = userRepository.save(otherUser)
+
+        val account = Account(
+            name = "My account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedAccount = accountRepository.saveForUser(persistedUser, account)
+        val otherAccount = Account(
+            name = "Other account",
+            accountId = UUID.randomUUID(),
+            balance = 120.0,
+            dispo = -1000.0,
+            limit = 1000.0,
+        )
+        val persistedOtherAccount = accountRepository.saveForUser(persistedOtherUser, otherAccount)
+
+        val transaction = Transaction(
+            origin = persistedAccount,
+            target = persistedOtherAccount,
+            amount = 60.0
+        )
+        val persistedTransaction = transactionRepository.save(transaction)
+
+        val otherTransaction = Transaction(
+            origin = persistedOtherAccount,
+            target = persistedAccount,
+            amount = 25.0
+        )
+        val persistedOtherTransaction = transactionRepository.save(otherTransaction)
+
+        // when
+        val actual = transactionRepository.findAll()
+
+        // then
+        assertThat(actual.map { it.transactionId }).containsExactlyInAnyOrder(
+            persistedTransaction.transactionId,
+            persistedOtherTransaction.transactionId
+        )
+    }
 }

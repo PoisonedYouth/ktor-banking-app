@@ -892,4 +892,76 @@ internal class TransactionServiceTest : KoinTest {
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.NOT_ALLOWED)
     }
+
+    @Test
+    fun `getAllTransactions is possible`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        val otherTransaction = Transaction(
+            origin = otherAccount,
+            target = account,
+            amount = 60.0
+        )
+
+        val persistedOtherTransaction =
+            transactionRepository.save(otherTransaction)
+
+        // when
+        val actual = transactionService.getAllTransactions()
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        (actual as Success).value.run {
+            assertThat(this[0].transactionId).isEqualTo(persistedTransaction.transactionId)
+            assertThat(this[0].origin).isEqualTo(persistedTransaction.origin.accountId)
+            assertThat(this[0].target).isEqualTo(persistedTransaction.target.accountId)
+            assertThat(this[0].amount).isEqualTo(persistedTransaction.amount)
+
+            assertThat(this[1].transactionId).isEqualTo(persistedOtherTransaction.transactionId)
+            assertThat(this[1].origin).isEqualTo(persistedOtherTransaction.origin.accountId)
+            assertThat(this[1].target).isEqualTo(persistedOtherTransaction.target.accountId)
+            assertThat(this[1].amount).isEqualTo(persistedOtherTransaction.amount)
+        }
+    }
+
 }
