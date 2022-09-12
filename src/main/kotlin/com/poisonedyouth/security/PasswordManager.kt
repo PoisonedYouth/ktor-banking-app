@@ -14,20 +14,19 @@ object PasswordManager {
 
     fun generatePassword(): String {
 
-        var result = ""
+        val resultValues = listOf(lowerCaseCharacter, upperCaseCharacter, numbers, specialCharacter)
         var i = 0
 
-        result += lowerCaseCharacter
-        result += upperCaseCharacter
-        result += numbers
-        result += specialCharacter
 
         val rnd = SecureRandom.getInstance("SHA1PRNG")
         val sb = StringBuilder(MINIMUM_PASSWORD_LENGTH)
 
-        while (i < MINIMUM_PASSWORD_LENGTH) {
-            val randomInt: Int = rnd.nextInt(result.length)
-            sb.append(result[randomInt])
+        repeat (MINIMUM_PASSWORD_LENGTH) {
+            val type = it % 4
+            val typeCharacters = resultValues[type]
+            sb.append(
+                typeCharacters[rnd.nextInt(typeCharacters.length-1)]
+            )
             i++
         }
 

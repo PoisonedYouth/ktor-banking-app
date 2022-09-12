@@ -23,7 +23,10 @@ data class User(
         require(birthdate.isBefore(requiredDate)) {
             "Birthdate must be before '$requiredDate'."
         }
-        PasswordManager.validatePassword(password)
+        val result = PasswordManager.validatePassword(password)
+        require(result.first) {
+            result.second
+        }
     }
 }
 

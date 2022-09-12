@@ -3,6 +3,7 @@ package com.poisonedyouth.application
 import com.poisonedyouth.domain.Account
 import com.poisonedyouth.domain.User
 import com.poisonedyouth.persistence.UserRepository
+import com.poisonedyouth.security.PasswordManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -17,6 +18,7 @@ interface UserService {
     fun deleteUser(userId: String?): ApiResult<UUID>
     fun updateUser(userDto: UserDto): ApiResult<UUID>
     fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID>
+    fun resetPassword(userId: String?): ApiResult<String>
     fun findUserByUserId(userId: String?): ApiResult<UserOverviewDto>
 }
 
@@ -215,6 +217,40 @@ class UserServiceImpl(
         } catch (e: Exception) {
             logger.error(
                 "Unable to update password for user with userId '${userPasswordChangeDto.userId}' to database.",
+                e
+            )
+            ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
+        }
+    }
+
+    override fun resetPassword(userId: String?): ApiResult<String> {
+        logger.info("Start resetting password for user with userId '${userId}'.")
+        return try {
+            val userIdResolved = UUID.fromString(userId)
+            val existingUser = userRepository.findByUserId(userIdResolved)
+            if (existingUser == null) {
+                logger.error("User with userId '$userId' does not exist in database.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
+            }
+
+            // Will be updated as soon as security is introduced
+            val newPassword = PasswordManager.generatePassword()
+
+            val updatedUser = existingUser.copy(
+                password = newPassword
+            )
+            userRepository.save(updatedUser)
+            logger.info("Successfully reset password for user with userId '${userId}'.")
+            ApiResult.Success(newPassword)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Password does not fulfill the requirements.", e)
+            ApiResult.Failure(ErrorCode.PASSWORD_ERROR, e.getErrorMessage())
+        } catch (e: Exception) {
+            logger.error(
+                "Unable to reset password for user with userId '${userId}' in database.",
                 e
             )
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())

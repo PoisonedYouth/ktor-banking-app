@@ -274,6 +274,7 @@ internal class UserControllerTest : KoinTest {
         assertThat(result.errorMessage).isEqualTo("User with userId '$userId' does not exist in database.")
         assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
     }
+
     @Test
     fun `updatePassword is possible`() = runBlocking<Unit> {
         // given
@@ -339,5 +340,55 @@ internal class UserControllerTest : KoinTest {
         assertThat(result.errorMessage).isEqualTo("The new password cannot be the same as the existing one.")
         assertThat(result.errorCode).isEqualTo(ErrorCode.PASSWORD_ERROR)
         assertThat(userRepository.findByUserId(user.userId)!!.password).isEqualTo(user.password)
+    }
+
+    @Test
+    fun `resetPassword is possible`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        // when
+        val response = client.put("http://localhost:8080/api/administrator/user/${user.userId}/password") {
+            accept(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val result = response.body<SuccessDto<String>>()
+        assertThat(result).isNotNull
+        assertThat(userRepository.findByUserId(user.userId)!!.password).isEqualTo(result.value)
+    }
+
+    @Test
+    fun `resetPassword fails if user does not exist`() = runBlocking<Unit> {
+        // given
+        val client = createHttpClient()
+
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+
+        // when
+        val response = client.put("http://localhost:8080/api/administrator/user/${user.userId}/password") {
+            accept(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo("User with userId '${user.userId}' does not exist in database.")
+        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
     }
 }

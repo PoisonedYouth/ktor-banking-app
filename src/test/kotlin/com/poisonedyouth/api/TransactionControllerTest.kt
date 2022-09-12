@@ -150,7 +150,7 @@ internal class TransactionControllerTest : KoinTest {
             target = otherAccount,
             amount = 100.0
         )
-        val persistedTransaction = transactionRepository.save(transaction)
+        transactionRepository.save(transaction)
 
         // when
         val response = client.get(

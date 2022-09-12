@@ -511,4 +511,23 @@ internal class UserServiceTest : KoinTest {
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.PASSWORD_ERROR)
     }
+
+    @Test
+    fun `resetPassword is possible for existing user`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when
+        val actual = userService.resetPassword(persistedUser.userId.toString())
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isNotEqualTo(persistedUser.password)
+    }
 }

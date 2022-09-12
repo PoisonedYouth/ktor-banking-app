@@ -708,8 +708,7 @@ internal class TransactionServiceTest : KoinTest {
             amount = 100.0
         )
 
-        val persistedTransaction =
-            transactionRepository.save(transaction)
+        transactionRepository.save(transaction)
 
         // when
         val actual = transactionService.getTransaction(
@@ -818,8 +817,7 @@ internal class TransactionServiceTest : KoinTest {
             amount = 100.0
         )
 
-        val persistedTransaction =
-            transactionRepository.save(transaction)
+        transactionRepository.save(transaction)
 
         // when
         val actual = transactionService.getTransaction(

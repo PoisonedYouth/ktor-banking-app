@@ -63,4 +63,14 @@ class UserController(
             }
         }
     }
+
+    suspend fun resetUserPassword(call: ApplicationCall) {
+        when (val result = userService.resetPassword(call.parameters["userId"])) {
+            is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(httpStatusCode, ErrorDto(errorCode = result.errorCode, errorMessage = result.errorMessage))
+            }
+        }
+    }
 }
