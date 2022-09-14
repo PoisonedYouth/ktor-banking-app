@@ -7,6 +7,7 @@ import com.poisonedyouth.security.PasswordManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
@@ -20,6 +21,8 @@ interface UserService {
     fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID>
     fun resetPassword(userId: String?): ApiResult<String>
     fun findUserByUserId(userId: String?): ApiResult<UserOverviewDto>
+
+    fun isValidUser(userId: String?, password: String): ApiResult<Boolean>
 }
 
 private const val BIRTH_DATE_FORMAT = "dd.MM.yyyy"
@@ -240,17 +243,53 @@ class UserServiceImpl(
             val newPassword = PasswordManager.generatePassword()
 
             val updatedUser = existingUser.copy(
-                password = newPassword
+                password = newPassword,
+                lastUpdated = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
             )
             userRepository.save(updatedUser)
             logger.info("Successfully reset password for user with userId '${userId}'.")
             ApiResult.Success(newPassword)
         } catch (e: IllegalArgumentException) {
-            logger.error("Password does not fulfill the requirements.", e)
-            ApiResult.Failure(ErrorCode.PASSWORD_ERROR, e.getErrorMessage())
+            logger.error("Given userId '$userId' is not valid.", e)
+            ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
         } catch (e: Exception) {
             logger.error(
                 "Unable to reset password for user with userId '${userId}' in database.",
+                e
+            )
+            ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
+        }
+    }
+
+    override fun isValidUser(userId: String?, password: String): ApiResult<Boolean> {
+        logger.info("Start checking for valid user for userId '${userId}' and password '$password'.")
+        return try {
+            val userIdResolved = UUID.fromString(userId)
+            val existingUser = userRepository.findByUserId(userIdResolved)
+            if (existingUser == null) {
+                logger.error("User with userId '$userId' does not exist in database.")
+                return ApiResult.Failure(
+                    ErrorCode.USER_NOT_FOUND,
+                    "User with userId '$userId' does not exist in database."
+                )
+            }
+
+            if (existingUser.password != password) {
+                logger.error("Password for user with userId '${userId}' is not valid.")
+                return ApiResult.Failure(
+                    ErrorCode.NOT_ALLOWED,
+                    "Password for user with userId '${userId}' is not valid."
+                )
+            }
+
+            logger.info("Successfully check for valid user with userId '${userId}'.")
+            ApiResult.Success(true)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given userId '$userId' is not valid.", e)
+            ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' is not valid.")
+        } catch (e: Exception) {
+            logger.error(
+                "Unable check for valid user with userId '${userId}' in database.",
                 e
             )
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())

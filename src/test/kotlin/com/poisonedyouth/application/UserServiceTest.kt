@@ -530,4 +530,83 @@ internal class UserServiceTest : KoinTest {
         assertThat(actual).isInstanceOf(Success::class.java)
         assertThat((actual as Success).value).isNotEqualTo(persistedUser.password)
     }
+
+    @Test
+    fun `isValidUse is possible`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when
+        val actual = userService.isValidUser(userId = persistedUser.userId.toString(), password = persistedUser.password)
+
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value).isTrue
+    }
+
+    @Test
+    fun `isValidUse fails if userId is invalid`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when
+        val actual = userService.isValidUser(userId = "INVALID_USERID", password = persistedUser.password)
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
+    fun `isValidUse fails if user does not exist`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+
+        // when
+        val actual = userService.isValidUser(userId = user.userId.toString(), password = user.password)
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun `isValidUse fails if password is incorrect`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        // when
+        val actual = userService.isValidUser(userId = persistedUser.userId.toString(), password = "WRONG_PASSWORD")
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.NOT_ALLOWED)
+    }
 }
