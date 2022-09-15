@@ -52,8 +52,6 @@ internal class AccountControllerTest : KoinTest {
     @Test
     fun getExistingAccount() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -71,6 +69,8 @@ internal class AccountControllerTest : KoinTest {
                 limit = 50.0
             )
         )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.get("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
@@ -104,8 +104,6 @@ internal class AccountControllerTest : KoinTest {
     @Test
     fun `getExistingAccount fails if accountId is invalid`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -124,6 +122,8 @@ internal class AccountControllerTest : KoinTest {
             )
         )
 
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
+
         // when
         val response = client.get("http://localhost:8080/api/user/${user.userId}/account/invalid_accountId") {
             accept(ContentType.Application.Json)
@@ -140,9 +140,7 @@ internal class AccountControllerTest : KoinTest {
     @Test
     fun createNewAccount() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
-        val user = userRepository.save(
+       val user = userRepository.save(
             User(
                 firstName = "John",
                 lastName = "Doe",
@@ -150,6 +148,8 @@ internal class AccountControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.post("http://localhost:8080/api/user/${user.userId}/account") {
@@ -173,14 +173,14 @@ internal class AccountControllerTest : KoinTest {
     @Test
     fun `createNewAccount fails if user does not exist`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = User(
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.post("http://localhost:8080/api/user/${user.userId}/account") {
@@ -195,19 +195,12 @@ internal class AccountControllerTest : KoinTest {
         }
 
         // then
-        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
-        val result = response.body<ErrorDto>()
-        assertThat(result.errorMessage).isEqualTo(
-            "User with userId '${user.userId}' does not exist in database."
-        )
-        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+        assertThat(response.status).isEqualTo(HttpStatusCode.Unauthorized)
     }
 
     @Test
     fun updateExistingAccount() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -225,6 +218,8 @@ internal class AccountControllerTest : KoinTest {
                 dispo = -200.0
             )
         )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.put("http://localhost:8080/api/user/${user.userId}/account") {
@@ -253,8 +248,6 @@ internal class AccountControllerTest : KoinTest {
     @Test
     fun `updateExistingAccount fails if account does not exist yet`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -270,6 +263,8 @@ internal class AccountControllerTest : KoinTest {
             limit = 100.0,
             dispo = -200.0
         )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.put("http://localhost:8080/api/user/${user.userId}/account") {
@@ -296,8 +291,77 @@ internal class AccountControllerTest : KoinTest {
     @Test
     fun deleteAccount() = runBlocking {
         // given
-        val client = createHttpClient()
+       val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
 
+        val account = accountRepository.saveForUser(
+            user = user, account = Account(
+                name = "My account",
+                balance = 100.0,
+                limit = 100.0,
+                dispo = -200.0
+            )
+        )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
+
+        // when
+        val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
+            contentType(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val result = response.body<SuccessDto<UUID>>()
+        assertThat(result).isNotNull
+        assertThat(accountRepository.findByAccountId(result.value)).isNotNull()
+        assertThat(accountRepository.findAllForUser(user.userId)).isEmpty()
+    }
+
+    @Test
+    fun `deleteAccount fails if account does not exist`() = runBlocking {
+        // given
+       val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        val account = Account(
+            name = "My account",
+            balance = 100.0,
+            limit = 100.0,
+            dispo = -200.0
+        )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
+
+        // when
+        val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
+            contentType(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo(
+            "Account with accountId '${account.accountId}' does not exist in database."
+        )
+        assertThat(result.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+    }
+
+    @Test
+    fun `deleteAccount fails if credentials are not valid`() = runBlocking<Unit> {
+        // given
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -316,39 +380,7 @@ internal class AccountControllerTest : KoinTest {
             )
         )
 
-        // when
-        val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
-            contentType(ContentType.Application.Json)
-        }
-
-        // then
-        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        val result = response.body<SuccessDto<UUID>>()
-        assertThat(result).isNotNull
-        assertThat(accountRepository.findByAccountId(result.value)).isNotNull()
-        assertThat(accountRepository.findAllForUser(user.userId)).isEmpty()
-    }
-
-    @Test
-    fun `deleteAccount fails if account does not exist`() = runBlocking {
-        // given
-        val client = createHttpClient()
-
-        val user = userRepository.save(
-            User(
-                firstName = "John",
-                lastName = "Doe",
-                birthdate = LocalDate.of(1999, 1, 1),
-                password = "Ta1&tudol3lal54e"
-            )
-        )
-
-        val account = Account(
-            name = "My account",
-            balance = 100.0,
-            limit = 100.0,
-            dispo = -200.0
-        )
+        val client = createHttpClient(userId = user.userId.toString(), password = "wrong password")
 
         // when
         val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
@@ -356,11 +388,11 @@ internal class AccountControllerTest : KoinTest {
         }
 
         // then
-        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        assertThat(response.status).isEqualTo(HttpStatusCode.Unauthorized)
         val result = response.body<ErrorDto>()
         assertThat(result.errorMessage).isEqualTo(
-            "Account with accountId '${account.accountId}' does not exist in database."
+            "Authentication for user with userId '${user.userId}' failed."
         )
-        assertThat(result.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
     }
 }

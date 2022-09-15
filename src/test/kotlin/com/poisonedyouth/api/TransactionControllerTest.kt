@@ -50,8 +50,6 @@ internal class TransactionControllerTest : KoinTest {
     @Test
     fun getExistingTransaction() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = User(
             firstName = "John",
             lastName = "Doe",
@@ -90,6 +88,8 @@ internal class TransactionControllerTest : KoinTest {
         )
         val persistedTransaction = transactionRepository.save(transaction)
 
+        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
+
         // when
         val response = client.get(
             "http://localhost:8080//api/user/${user.userId}/transaction/" +
@@ -112,8 +112,6 @@ internal class TransactionControllerTest : KoinTest {
     @Test
     fun `getExistingTransaction fails if transactionId is invalid`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = User(
             firstName = "John",
             lastName = "Doe",
@@ -152,6 +150,8 @@ internal class TransactionControllerTest : KoinTest {
         )
         transactionRepository.save(transaction)
 
+        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
+
         // when
         val response = client.get(
             "http://localhost:8080//api/user/${user.userId}/transaction/" +
@@ -171,9 +171,7 @@ internal class TransactionControllerTest : KoinTest {
     @Test
     fun createNewTransaction() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
-        val user = User(
+val user = User(
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(1999, 1, 1),
@@ -204,6 +202,7 @@ internal class TransactionControllerTest : KoinTest {
         )
         accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
 
+        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
 
         // when
         val response = client.post(
@@ -226,8 +225,6 @@ internal class TransactionControllerTest : KoinTest {
     @Test
     fun `createNewTransaction fails if origin account does not exist`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = User(
             firstName = "John",
             lastName = "Doe",
@@ -258,6 +255,7 @@ internal class TransactionControllerTest : KoinTest {
         )
         accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
 
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.post(
@@ -282,8 +280,6 @@ internal class TransactionControllerTest : KoinTest {
     @Test
     fun deleteExistingTransaction() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = User(
             firstName = "John",
             lastName = "Doe",
@@ -322,6 +318,7 @@ internal class TransactionControllerTest : KoinTest {
         )
         val persistedTransaction = transactionRepository.save(transaction)
 
+        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
 
         // when
         val response = client.delete(
@@ -341,8 +338,6 @@ internal class TransactionControllerTest : KoinTest {
     @Test
     fun `deleteExistingTransaction if transaction does not exist`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = User(
             firstName = "John",
             lastName = "Doe",
@@ -380,6 +375,7 @@ internal class TransactionControllerTest : KoinTest {
             amount = 100.0
         )
 
+        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
 
         // when
         val response = client.delete(
@@ -399,8 +395,6 @@ internal class TransactionControllerTest : KoinTest {
     @Test
     fun getAllExistingTransactions() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = User(
             firstName = "John",
             lastName = "Doe",
@@ -445,6 +439,8 @@ internal class TransactionControllerTest : KoinTest {
             amount = 60.0
         )
         val persistedOtherTransaction = transactionRepository.save(otherTransaction)
+
+        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
 
         // when
         val response = client.get(

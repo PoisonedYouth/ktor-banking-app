@@ -97,8 +97,6 @@ internal class UserControllerTest : KoinTest {
     @Test
     fun getExistingUser() = runBlocking {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -107,6 +105,8 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.get("http://localhost:8080/api/user/${user.userId}") {
@@ -128,9 +128,7 @@ internal class UserControllerTest : KoinTest {
     @Test
     fun `getExistingUser fails if userId is invalid`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
-        userRepository.save(
+        val user = userRepository.save(
             User(
                 firstName = "John",
                 lastName = "Doe",
@@ -138,6 +136,7 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.get("http://localhost:8080/api/user/invalid_userId") {
@@ -154,8 +153,6 @@ internal class UserControllerTest : KoinTest {
     @Test
     fun `updateExistingUser is possible`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -164,6 +161,7 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.put("http://localhost:8080/api/user") {
@@ -189,9 +187,8 @@ internal class UserControllerTest : KoinTest {
     @Test
     fun `updateExistingUser fails if user does not exist`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
-        userRepository.save(
+        val userId = UUID.randomUUID()
+        val user = userRepository.save(
             User(
                 firstName = "John",
                 lastName = "Doe",
@@ -199,9 +196,9 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+        val client = createHttpClient(userId = userId.toString(), password = user.password)
 
         // when
-        val userId = UUID.randomUUID()
         val response = client.put("http://localhost:8080/api/user") {
             setBody(
                 UserDto(
@@ -216,17 +213,19 @@ internal class UserControllerTest : KoinTest {
         }
 
         // then
-        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
+        assertThat(response.status).isEqualTo(HttpStatusCode.Unauthorized)
         val result = response.body<ErrorDto>()
-        assertThat(result.errorMessage).isEqualTo("User with userId '$userId' does not exist in database.")
-        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+        assertThat(result.errorMessage)
+            .isEqualTo(
+                "Authentication for user with userId '${
+                    userId
+                }' failed."
+            )
     }
 
     @Test
     fun `deleteUser is possible`() = runBlocking {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -235,6 +234,8 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.delete("http://localhost:8080/api/user/${user.userId}") {
@@ -251,35 +252,6 @@ internal class UserControllerTest : KoinTest {
     @Test
     fun `deleteUser fails if user does not exist`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
-        userRepository.save(
-            User(
-                firstName = "John",
-                lastName = "Doe",
-                birthdate = LocalDate.of(1999, 1, 1),
-                password = "Ta1&tudol3lal54e"
-            )
-        )
-
-        // when
-        val userId = UUID.randomUUID()
-        val response = client.delete("http://localhost:8080/api/user/${userId}") {
-            contentType(ContentType.Application.Json)
-        }
-
-        // then
-        assertThat(response.status).isEqualTo(HttpStatusCode.NotFound)
-        val result = response.body<ErrorDto>()
-        assertThat(result.errorMessage).isEqualTo("User with userId '$userId' does not exist in database.")
-        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
-    }
-
-    @Test
-    fun `updatePassword is possible`() = runBlocking<Unit> {
-        // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -288,6 +260,37 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+        val userId = UUID.randomUUID()
+
+        val client = createHttpClient(userId = userId.toString(), password = user.password)
+
+        // when
+        val response = client.delete("http://localhost:8080/api/user/${userId}") {
+            contentType(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.Unauthorized)
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage).isEqualTo(
+            "Authentication for user with userId '${userId}' failed."
+        )
+        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun `updatePassword is possible`() = runBlocking<Unit> {
+        // given
+        val user = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.put("http://localhost:8080/api/user/${user.userId}/password") {
@@ -311,8 +314,6 @@ internal class UserControllerTest : KoinTest {
     @Test
     fun `updatePassword fails if new password is same as existing`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -321,6 +322,7 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.put("http://localhost:8080/api/user/${user.userId}/password") {
@@ -345,8 +347,6 @@ internal class UserControllerTest : KoinTest {
     @Test
     fun `resetPassword is possible`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = userRepository.save(
             User(
                 firstName = "John",
@@ -355,6 +355,7 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.put("http://localhost:8080/api/administrator/user/${user.userId}/password") {
@@ -371,14 +372,13 @@ internal class UserControllerTest : KoinTest {
     @Test
     fun `resetPassword fails if user does not exist`() = runBlocking<Unit> {
         // given
-        val client = createHttpClient()
-
         val user = User(
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
+        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
         val response = client.put("http://localhost:8080/api/administrator/user/${user.userId}/password") {
