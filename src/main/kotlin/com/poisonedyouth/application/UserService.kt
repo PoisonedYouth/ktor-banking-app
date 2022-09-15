@@ -262,7 +262,7 @@ class UserServiceImpl(
     }
 
     override fun isValidUser(userId: String?, password: String): ApiResult<Boolean> {
-        logger.info("Start checking for valid user for userId '${userId}' and password '$password'.")
+        logger.info("Start checking for valid user with userId '${userId}' and password '$password'.")
         return try {
             val userIdResolved = UUID.fromString(userId)
             val existingUser = userRepository.findByUserId(userIdResolved)

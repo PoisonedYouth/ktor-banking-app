@@ -7,7 +7,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.javatime.datetime
 
 class AdministratorEntity(id: EntityID<Long>) : LongEntity(id) {
-    var adminId by AdministratorTable.adminId
+    var administratorId by AdministratorTable.administratorId
     var name by AdministratorTable.name
     var password by AdministratorTable.password
     var created by AdministratorTable.created
@@ -17,7 +17,7 @@ class AdministratorEntity(id: EntityID<Long>) : LongEntity(id) {
 }
 
 object AdministratorTable : LongIdTable("administrator", "id") {
-    val adminId = uuid("admin_id")
+    val administratorId = uuid("administrator_id")
     val name = varchar("name", DEFAULT_VARCHAR_COLUMN_LENGTH)
     val password = varchar("password", DEFAULT_VARCHAR_COLUMN_LENGTH)
     val created = datetime("created")

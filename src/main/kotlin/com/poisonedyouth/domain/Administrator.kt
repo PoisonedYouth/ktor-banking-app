@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 data class Administrator(
-    val adminId: UUID = UUID.randomUUID(),
+    val administratorId: UUID = UUID.randomUUID(),
     val name: String,
     val password: String,
     val created: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),

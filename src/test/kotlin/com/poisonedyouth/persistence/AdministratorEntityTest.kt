@@ -28,7 +28,7 @@ internal class AdministratorEntityTest {
         // given + when
         val administrator = transaction {
             AdministratorEntity.new {
-                adminId = UUID.randomUUID()
+                administratorId = UUID.randomUUID()
                 name = "Admin"
                 password = "passw0rd"
                 created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
@@ -45,7 +45,7 @@ internal class AdministratorEntityTest {
         // given
         val persistedAdministrator = transaction {
             AdministratorEntity.new {
-                adminId = UUID.randomUUID()
+                administratorId = UUID.randomUUID()
                 name = "Admin"
                 password = "passw0rd"
                 created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
@@ -65,7 +65,7 @@ internal class AdministratorEntityTest {
         // given
         val persistedAdministrator = transaction {
             AdministratorEntity.new {
-                adminId = UUID.randomUUID()
+                administratorId = UUID.randomUUID()
                 name = "Admin"
                 password = "passw0rd"
                 created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
@@ -87,7 +87,7 @@ internal class AdministratorEntityTest {
         // given
         transaction {
             AdministratorEntity.new {
-                adminId = UUID.randomUUID()
+                administratorId = UUID.randomUUID()
                 name = "Admin"
                 password = "passw0rd"
                 created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)

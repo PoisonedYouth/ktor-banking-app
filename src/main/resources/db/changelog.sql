@@ -46,16 +46,27 @@ CREATE TABLE `administrator`
 );
 
 -- changeset liquibase:2
-ALTER TABLE `user` ADD UNIQUE (`user_id`);
-ALTER TABLE `account` ADD UNIQUE (`account_id`);
-ALTER TABLE `transaction` ADD UNIQUE (`transaction_id`);
+ALTER TABLE `user`
+    ADD UNIQUE (`user_id`);
+ALTER TABLE `account`
+    ADD UNIQUE (`account_id`);
+ALTER TABLE `transaction`
+    ADD UNIQUE (`transaction_id`);
 
 -- changeset  liquibase:3
-ALTER TABLE `account` ADD CONSTRAINT `account_name` UNIQUE  (`name`, `user_id`);
+ALTER TABLE `account`
+    ADD CONSTRAINT `account_name` UNIQUE (`name`, `user_id`);
 
 -- changeset liquibase:4
-ALTER TABLE `user` ADD CONSTRAINT `unique_user` UNIQUE (`first_name`, `last_name`, `birthdate`);
+ALTER TABLE `user`
+    ADD CONSTRAINT `unique_user` UNIQUE (`first_name`, `last_name`, `birthdate`);
 
 -- changeset liquibase:5
-ALTER TABLE `administrator` ADD COLUMN `created` DATETIME NOT NULL DEFAULT NOW();
-ALTER TABLE `administrator` ADD COLUMN `last_updated` DATETIME NOT NULL DEFAULT NOW();
+ALTER TABLE `administrator`
+    ADD COLUMN `created` DATETIME NOT NULL DEFAULT NOW();
+ALTER TABLE `administrator`
+    ADD COLUMN `last_updated` DATETIME NOT NULL DEFAULT NOW();
+
+-- changeset liquibase:6
+INSERT INTO `administrator`
+    VALUES (1,'bdf79db3-1dfb-4ce2-b539-51de0cc703ee', 'DEFAULT ADMINISTRATOR', 'Ta1&tudol3lal54e', NOW(), NOW())

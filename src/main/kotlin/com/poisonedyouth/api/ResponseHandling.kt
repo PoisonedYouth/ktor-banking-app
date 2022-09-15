@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode
 internal fun getHttpStatusCodeFromErrorCode(result: Failure) = when (result.errorCode) {
     ErrorCode.USER_NOT_FOUND,
     ErrorCode.TRANSACTION_NOT_FOUND,
+    ErrorCode.ADMINISTRATOR_NOT_FOUND,
     ErrorCode.ACCOUNT_NOT_FOUND -> HttpStatusCode.NotFound
 
     ErrorCode.PASSWORD_ERROR,
