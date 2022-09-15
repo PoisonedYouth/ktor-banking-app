@@ -65,15 +65,17 @@ fun Application.configureRouting() {
                 }
             }
         }
-        route("/api/administrator"){
-            delete("/transaction/{transactionId}"){
-                transactionController.deleteTransaction(call)
-            }
-            put("/user/{userid}/password") {
-                userController.resetUserPassword(call)
-            }
-            get("/transaction"){
-                transactionController.getAllExistingTransaction(call)
+        route("/api/administrator") {
+            authenticate("administratorAuthentication") {
+                delete("/transaction/{transactionId}") {
+                    transactionController.deleteTransaction(call)
+                }
+                put("/user/{userid}/password") {
+                    userController.resetUserPassword(call)
+                }
+                get("/transaction") {
+                    transactionController.getAllExistingTransaction(call)
+                }
             }
         }
     }
