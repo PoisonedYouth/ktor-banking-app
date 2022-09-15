@@ -1,6 +1,9 @@
 package com.poisonedyouth
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BasicAuthCredentials
+import io.ktor.client.plugins.auth.providers.basic
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.config.ApplicationConfig
@@ -35,10 +38,18 @@ class KtorServerExtension : BeforeAllCallback, AfterAllCallback {
     }
 }
 
-fun createHttpClient(): HttpClient {
+fun createHttpClient(userId: String = "userId", password: String = "password"): HttpClient {
     val client = HttpClient {
         install(ContentNegotiation) {
             jackson()
+        }
+        install(Auth) {
+            basic {
+                credentials {
+                    BasicAuthCredentials(username = userId, password = password)
+                }
+                realm = "Ktor Banking App"
+            }
         }
     }
     return client
