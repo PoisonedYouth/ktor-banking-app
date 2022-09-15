@@ -355,7 +355,7 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
-        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
+        val client = createHttpClient(userId = "bdf79db3-1dfb-4ce2-b539-51de0cc703ee", password = "Ta1&tudol3lal54e")
 
         // when
         val response = client.put("http://localhost:8080/api/administrator/user/${user.userId}/password") {
@@ -378,7 +378,8 @@ internal class UserControllerTest : KoinTest {
             birthdate = LocalDate.of(1999, 1, 1),
             password = "Ta1&tudol3lal54e"
         )
-        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
+
+        val client = createHttpClient(userId = "bdf79db3-1dfb-4ce2-b539-51de0cc703ee", password = "Ta1&tudol3lal54e")
 
         // when
         val response = client.put("http://localhost:8080/api/administrator/user/${user.userId}/password") {

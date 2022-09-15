@@ -171,7 +171,7 @@ internal class TransactionControllerTest : KoinTest {
     @Test
     fun createNewTransaction() = runBlocking<Unit> {
         // given
-val user = User(
+        val user = User(
             firstName = "John",
             lastName = "Doe",
             birthdate = LocalDate.of(1999, 1, 1),
@@ -208,11 +208,13 @@ val user = User(
         val response = client.post(
             "http://localhost:8080//api/user/${user.userId}/transaction"
         ) {
-            setBody(TransactionDto(
-                origin = account.accountId,
-                target = otherAccount.accountId,
-                amount = 234.0
-            ))
+            setBody(
+                TransactionDto(
+                    origin = account.accountId,
+                    target = otherAccount.accountId,
+                    amount = 234.0
+                )
+            )
             contentType(ContentType.Application.Json)
         }
 
@@ -261,11 +263,13 @@ val user = User(
         val response = client.post(
             "http://localhost:8080//api/user/${user.userId}/transaction"
         ) {
-            setBody(TransactionDto(
-                origin = account.accountId,
-                target = otherAccount.accountId,
-                amount = 234.0
-            ))
+            setBody(
+                TransactionDto(
+                    origin = account.accountId,
+                    target = otherAccount.accountId,
+                    amount = 234.0
+                )
+            )
             contentType(ContentType.Application.Json)
         }
 
@@ -318,7 +322,7 @@ val user = User(
         )
         val persistedTransaction = transactionRepository.save(transaction)
 
-        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
+        val client = createHttpClient(userId = "bdf79db3-1dfb-4ce2-b539-51de0cc703ee", password = "Ta1&tudol3lal54e")
 
         // when
         val response = client.delete(
@@ -333,6 +337,66 @@ val user = User(
         assertThat(transactionRepository.findByTransactionId(result.value)).isNull()
         assertThat(accountRepository.findByAccountId(account.accountId)!!.balance).isEqualTo(500.0)
         assertThat(accountRepository.findByAccountId(otherAccount.accountId)!!.balance).isEqualTo(-100.0)
+    }
+
+    @Test
+    fun `deleteExistingTransaction fails if authentication fails`() = runBlocking<Unit> {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 300.0,
+            balance = 400.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+        val persistedTransaction = transactionRepository.save(transaction)
+
+        val client = createHttpClient(userId = "bdf79db3-1dfb-4ce2-b539-51de0cc703ee", password = "WRONG PASSWORD")
+
+        // when
+        val response = client.delete(
+            "http://localhost:8080//api/administrator/transaction/${persistedTransaction.transactionId}"
+        ) {
+            accept(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.Unauthorized)
+        val result = response.body<ErrorDto>()
+        assertThat(result.errorMessage)
+            .isEqualTo(
+                "Authentication for administrator with administratorId 'bdf79db3-1dfb-4ce2-b539-51de0cc703ee' failed."
+            )
+
     }
 
     @Test
@@ -375,7 +439,7 @@ val user = User(
             amount = 100.0
         )
 
-        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
+        val client = createHttpClient(userId = "bdf79db3-1dfb-4ce2-b539-51de0cc703ee", password = "Ta1&tudol3lal54e")
 
         // when
         val response = client.delete(
@@ -440,7 +504,7 @@ val user = User(
         )
         val persistedOtherTransaction = transactionRepository.save(otherTransaction)
 
-        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
+        val client = createHttpClient(userId = "bdf79db3-1dfb-4ce2-b539-51de0cc703ee", password = "Ta1&tudol3lal54e")
 
         // when
         val response = client.get(
