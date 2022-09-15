@@ -5,6 +5,7 @@ import com.poisonedyouth.api.TransactionController
 import com.poisonedyouth.api.UserController
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -20,42 +21,48 @@ fun Application.configureRouting() {
 
     routing {
         route("/api/user") {
-            get("/{userId}") {
-                userController.getExistingUser(call)
+            authenticate("userAuthentication") {
+                get("/{userId}") {
+                    userController.getExistingUser(call)
+                }
+                put("") {
+                    userController.updateExistingUser(call)
+                }
+                delete("/{userId}") {
+                    userController.deleteUser(call)
+                }
+                put("/{userId}/password") {
+                    userController.updatePassword(call)
+                }
             }
             post("") {
                 userController.createNewUser(call)
             }
-            put("") {
-                userController.updateExistingUser(call)
-            }
-            delete("/{userId}") {
-                userController.deleteUser(call)
-            }
-            put("/{userId}/password") {
-                userController.updatePassword(call)
-            }
         }
         route("/api/user/{userId}/account") {
-            get("/{accountId}") {
-                accountController.getExistingAccount(call)
-            }
-            post("") {
-                accountController.createNewAccount(call)
-            }
-            put("") {
-                accountController.updateExistingAccount(call)
-            }
-            delete("/{accountId}") {
-                accountController.deleteAccount(call)
+            authenticate("userAuthentication") {
+                get("/{accountId}") {
+                    accountController.getExistingAccount(call)
+                }
+                post("") {
+                    accountController.createNewAccount(call)
+                }
+                put("") {
+                    accountController.updateExistingAccount(call)
+                }
+                delete("/{accountId}") {
+                    accountController.deleteAccount(call)
+                }
             }
         }
         route("/api/user/{userId}/transaction") {
-            get("/{transactionId}") {
-                transactionController.getExistingTransaction(call)
-            }
-            post("") {
-                transactionController.createNewTransaction(call)
+            authenticate("userAuthentication") {
+                get("/{transactionId}") {
+                    transactionController.getExistingTransaction(call)
+                }
+                post("") {
+                    transactionController.createNewTransaction(call)
+                }
             }
         }
         route("/api/administrator"){
