@@ -2,6 +2,7 @@ package com.poisonedyouth
 
 import com.poisonedyouth.configuration.setupApplicationConfiguration
 import com.poisonedyouth.dependencyinjection.setupKoin
+import com.poisonedyouth.persistence.checkDatabaseDefaults
 import com.poisonedyouth.persistence.migrateDatabaseSchema
 import com.poisonedyouth.persistence.setupDatabase
 import com.poisonedyouth.plugins.configureRouting
@@ -18,6 +19,8 @@ fun Application.module() {
     val applicationConfiguration = setupApplicationConfiguration()
     val dataSource = setupDatabase(applicationConfiguration)
     migrateDatabaseSchema(dataSource)
+
+    checkDatabaseDefaults()
 
     setupKoin()
     configureSerialization()

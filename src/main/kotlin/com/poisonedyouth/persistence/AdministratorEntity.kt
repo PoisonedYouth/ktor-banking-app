@@ -10,6 +10,8 @@ class AdministratorEntity(id: EntityID<Long>) : LongEntity(id) {
     var administratorId by AdministratorTable.administratorId
     var name by AdministratorTable.name
     var password by AdministratorTable.password
+    var secretKey by AdministratorTable.secretKey
+    var iv by AdministratorTable.iv
     var created by AdministratorTable.created
     var lastUpdated by AdministratorTable.lastUpdated
 
@@ -19,7 +21,9 @@ class AdministratorEntity(id: EntityID<Long>) : LongEntity(id) {
 object AdministratorTable : LongIdTable("administrator", "id") {
     val administratorId = uuid("administrator_id")
     val name = varchar("name", DEFAULT_VARCHAR_COLUMN_LENGTH)
-    val password = varchar("password", DEFAULT_VARCHAR_COLUMN_LENGTH)
+    val password = binary("password")
+    val secretKey = binary("secret_key")
+    val iv = binary("iv")
     val created = datetime("created")
     val lastUpdated = datetime("last_updated")
 }

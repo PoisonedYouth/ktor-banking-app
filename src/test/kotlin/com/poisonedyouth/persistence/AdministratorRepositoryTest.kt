@@ -28,6 +28,7 @@ class AdministratorRepositoryTest : KoinTest {
     fun setupDatasource() {
         databaseFactory = TestDatabaseFactory()
         databaseFactory.connect()
+        checkDatabaseDefaults()
     }
 
     @AfterEach

@@ -30,7 +30,9 @@ internal class AdministratorEntityTest {
             AdministratorEntity.new {
                 administratorId = UUID.randomUUID()
                 name = "Admin"
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
                 lastUpdated = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
             }
@@ -47,7 +49,9 @@ internal class AdministratorEntityTest {
             AdministratorEntity.new {
                 administratorId = UUID.randomUUID()
                 name = "Admin"
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
                 lastUpdated = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
             }
@@ -67,7 +71,9 @@ internal class AdministratorEntityTest {
             AdministratorEntity.new {
                 administratorId = UUID.randomUUID()
                 name = "Admin"
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
                 lastUpdated = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
             }
@@ -89,7 +95,9 @@ internal class AdministratorEntityTest {
             AdministratorEntity.new {
                 administratorId = UUID.randomUUID()
                 name = "Admin"
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
                 lastUpdated = LocalDateTime.of(2000, 1, 1, 0, 0, 2)
             }

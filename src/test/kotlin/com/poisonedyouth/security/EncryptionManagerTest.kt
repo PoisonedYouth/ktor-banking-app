@@ -8,7 +8,7 @@ internal class EncryptionManagerTest {
     @Test
     fun `encrypt and decrypt are working for correct data`() {
         // given
-        val password = "password"
+        val password = "Ta1&tudol3lal54e"
 
         // when
         val result = EncryptionManager.encrypt(password)

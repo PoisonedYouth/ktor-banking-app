@@ -42,9 +42,9 @@ CREATE TABLE `administrator`
     `id`               LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
     `administrator_id` UUID                            NOT NULL,
     `name`             VARCHAR(255)                    NOT NULL,
-    `password`         VARCHAR(255)                    NOT NULL,
+    `password`         BYTEA                           NOT NULL,
+    `secret_key`       BYTEA                           NOT NULL,
+    `iv`               BYTEA                           NOT NULL,
     `created`          DATETIME                        NOT NULL,
     `last_updated`     DATETIME                        NOT NULL
 );
-INSERT INTO `administrator`
-VALUES (1,'bdf79db3-1dfb-4ce2-b539-51de0cc703ee', 'DEFAULT ADMINISTRATOR', 'Ta1&tudol3lal54e', NOW(), NOW())

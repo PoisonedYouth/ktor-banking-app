@@ -2,6 +2,7 @@ package com.poisonedyouth.application
 
 import com.poisonedyouth.TestDatabaseFactory
 import com.poisonedyouth.dependencyinjection.bankingAppModule
+import com.poisonedyouth.persistence.checkDatabaseDefaults
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -29,6 +30,7 @@ class AdministratorServiceTest : KoinTest {
     fun setupDatasource() {
         databaseFactory = TestDatabaseFactory()
         databaseFactory.connect()
+        checkDatabaseDefaults()
     }
 
     @AfterEach
