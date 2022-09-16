@@ -15,6 +15,8 @@ class UserEntity(id: EntityID<Long>) : LongEntity(id) {
     var lastName by UserTable.lastName
     var birthdate by UserTable.birthdate
     var password by UserTable.password
+    var secretKey by UserTable.secretKey
+    var iv by UserTable.iv
     var created by UserTable.created
     var lastUpdated by UserTable.lastUpdated
     val accounts by AccountEntity optionalReferrersOn  AccountTable.user
@@ -27,7 +29,9 @@ object UserTable : LongIdTable("user", "id") {
     val firstName = varchar("first_name", DEFAULT_VARCHAR_COLUMN_LENGTH)
     val lastName = varchar("last_name", DEFAULT_VARCHAR_COLUMN_LENGTH)
     val birthdate = date("birthdate")
-    val password = varchar("password", DEFAULT_VARCHAR_COLUMN_LENGTH)
+    val password = binary("password")
+    val secretKey = binary("secret_key")
+    val iv = binary("iv")
     val created = datetime("created")
     val lastUpdated = datetime("last_updated")
     init {

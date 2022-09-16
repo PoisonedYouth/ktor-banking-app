@@ -5,7 +5,9 @@ CREATE TABLE `user`
     `first_name`   VARCHAR(255)                    NOT NULL,
     `last_name`    VARCHAR(255)                    NOT NULL,
     `birthdate`    DATE                            NOT NULL,
-    `password`     VARCHAR(255)                    NOT NULL,
+    `password`     BYTEA                           NOT NULL,
+    `secret_key`   BYTEA                           NOT NULL,
+    `iv`           BYTEA                           NOT NULL,
     `created`      DATETIME                        NOT NULL,
     `last_updated` DATETIME                        NOT NULL,
     CONSTRAINT `unique_user` UNIQUE (`first_name`, `last_name`, `birthdate`)

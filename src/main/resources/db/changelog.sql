@@ -4,13 +4,16 @@
 CREATE TABLE `user`
 (
     `id`           LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
-    `user_id`      UUID                            NOT NULL,
+    `user_id`      UUID UNIQUE                     NOT NULL,
     `first_name`   VARCHAR(255)                    NOT NULL,
     `last_name`    VARCHAR(255)                    NOT NULL,
     `birthdate`    DATE                            NOT NULL,
-    `password`     VARCHAR(255)                    NOT NULL,
+    `password`     BYTEA                           NOT NULL,
+    `secret_key`   BYTEA                           NOT NULL,
+    `iv`           BYTEA                           NOT NULL,
     `created`      DATETIME                        NOT NULL,
-    `last_updated` DATETIME                        NOT NULL
+    `last_updated` DATETIME                        NOT NULL,
+    CONSTRAINT `unique_user` UNIQUE (`first_name`, `last_name`, `birthdate`)
 );
 CREATE TABLE `account`
 (
@@ -23,12 +26,13 @@ CREATE TABLE `account`
     `created`      DATETIME                        NOT NULL,
     `last_updated` DATETIME                        NOT NULL,
     `user_id`      LONG,
+    CONSTRAINT `account_name` UNIQUE (`name`, `user_id`),
     FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON UPDATE cascade ON DELETE SET NULL
 );
 CREATE TABLE `transaction`
 (
     `id`             LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
-    `transaction_id` UUID                            NOT NULL,
+    `transaction_id` UUID UNIQUE                     NOT NULL,
     `origin`         UUID                            NOT NULL,
     `target`         UUID                            NOT NULL,
     `amount`         LONG                            NOT NULL,
@@ -36,37 +40,14 @@ CREATE TABLE `transaction`
     FOREIGN KEY (`origin`) REFERENCES `account` (`account_id`) ON UPDATE CASCADE ON DELETE RESTRICT,
     FOREIGN KEY (`target`) REFERENCES `account` (`account_id`) ON UPDATE CASCADE ON DELETE RESTRICT
 );
-
 CREATE TABLE `administrator`
 (
-    `id`       LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    `id`               LONG PRIMARY KEY AUTO_INCREMENT NOT NULL,
     `administrator_id` UUID                            NOT NULL,
-    `name`     VARCHAR(255)                    NOT NULL,
-    `password` VARCHAR(255)                    NOT NULL
+    `name`             VARCHAR(255)                    NOT NULL,
+    `password`         BYTEA                           NOT NULL,
+    `secret_key`       BYTEA                           NOT NULL,
+    `iv`               BYTEA                           NOT NULL,
+    `created`          DATETIME                        NOT NULL,
+    `last_updated`     DATETIME                        NOT NULL
 );
-
--- changeset liquibase:2
-ALTER TABLE `user`
-    ADD UNIQUE (`user_id`);
-ALTER TABLE `account`
-    ADD UNIQUE (`account_id`);
-ALTER TABLE `transaction`
-    ADD UNIQUE (`transaction_id`);
-
--- changeset  liquibase:3
-ALTER TABLE `account`
-    ADD CONSTRAINT `account_name` UNIQUE (`name`, `user_id`);
-
--- changeset liquibase:4
-ALTER TABLE `user`
-    ADD CONSTRAINT `unique_user` UNIQUE (`first_name`, `last_name`, `birthdate`);
-
--- changeset liquibase:5
-ALTER TABLE `administrator`
-    ADD COLUMN `created` DATETIME NOT NULL DEFAULT NOW();
-ALTER TABLE `administrator`
-    ADD COLUMN `last_updated` DATETIME NOT NULL DEFAULT NOW();
-
--- changeset liquibase:6
-INSERT INTO `administrator`
-    VALUES (1,'bdf79db3-1dfb-4ce2-b539-51de0cc703ee', 'DEFAULT ADMINISTRATOR', 'Ta1&tudol3lal54e', NOW(), NOW())

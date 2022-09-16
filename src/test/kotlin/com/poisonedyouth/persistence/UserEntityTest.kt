@@ -35,7 +35,9 @@ internal class UserEntityTest {
                 firstName = "John"
                 lastName = "Doe"
                 birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2022, 1, 1, 1, 9)
                 lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
             }
@@ -54,7 +56,9 @@ internal class UserEntityTest {
                 firstName = "John"
                 lastName = "Doe"
                 birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2022, 1, 1, 1, 9)
                 lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
             }
@@ -68,7 +72,9 @@ internal class UserEntityTest {
                     firstName = "John"
                     lastName = "Doe"
                     birthdate = LocalDate.of(2000, 1, 1)
-                    password = "passw0rd"
+                    password = "passw0rd".toByteArray()
+                    secretKey = "secretKey".toByteArray()
+                    iv = "iv".toByteArray()
                     created = LocalDateTime.of(2022, 1, 1, 1, 9)
                     lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
                 }
@@ -85,7 +91,9 @@ internal class UserEntityTest {
                 firstName = "John"
                 lastName = "Doe"
                 birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2022, 1, 1, 1, 9)
                 lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
             }
@@ -99,7 +107,9 @@ internal class UserEntityTest {
                     firstName = "John"
                     lastName = "Doe"
                     birthdate = LocalDate.of(2000, 1, 1)
-                    password = "passw0rd"
+                    password = "passw0rd".toByteArray()
+                    secretKey = "secretKey".toByteArray()
+                    iv = "iv".toByteArray()
                     created = LocalDateTime.of(2022, 1, 1, 1, 9)
                     lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
                 }
@@ -116,7 +126,9 @@ internal class UserEntityTest {
                 firstName = "John"
                 lastName = "Doe"
                 birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2022, 1, 1, 1, 9)
                 lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
             }
@@ -138,7 +150,9 @@ internal class UserEntityTest {
                 firstName = "John"
                 lastName = "Doe"
                 birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2022, 1, 1, 1, 9)
                 lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
             }
@@ -160,7 +174,11 @@ internal class UserEntityTest {
                 firstName = "John"
                 lastName = "Doe"
                 birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2022, 1, 1, 1, 9)
                 lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
             }
@@ -183,7 +201,9 @@ internal class UserEntityTest {
                 firstName = "John"
                 lastName = "Doe"
                 birthdate = LocalDate.of(2000, 1, 1)
-                password = "passw0rd"
+                password = "passw0rd".toByteArray()
+                secretKey = "secretKey".toByteArray()
+                iv = "iv".toByteArray()
                 created = LocalDateTime.of(2022, 1, 1, 1, 9)
                 lastUpdated = LocalDateTime.of(2022, 1, 1, 2, 9)
             }

@@ -1,6 +1,8 @@
 package com.poisonedyouth.persistence
 
 import com.poisonedyouth.domain.User
+import com.poisonedyouth.security.EncryptionManager
+import com.poisonedyouth.security.EncryptionResult
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -20,12 +22,15 @@ class UserRepositoryImpl : UserRepository {
         val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
         if (existingUser == null) {
-           UserEntity.new {
+            val encryptionResult = EncryptionManager.encrypt(user.password)
+            UserEntity.new {
                 userId = user.userId
                 firstName = user.firstName
                 lastName = user.lastName
                 birthdate = user.birthdate
-                password = user.password
+                password = encryptionResult.ciphterText
+                secretKey = encryptionResult.secretKey
+                iv = encryptionResult.initializationVector
                 created = currentDateTime
                 lastUpdated = currentDateTime
             }
@@ -35,11 +40,14 @@ class UserRepositoryImpl : UserRepository {
                 lastUpdated = currentDateTime
             )
         } else {
+            val encryptionResult = EncryptionManager.encrypt(user.password)
             existingUser.userId = user.userId
             existingUser.firstName = user.firstName
             existingUser.lastName = user.lastName
             existingUser.birthdate = user.birthdate
-            existingUser.password = user.password
+            existingUser.password = encryptionResult.ciphterText
+            existingUser.secretKey = encryptionResult.secretKey
+            existingUser.iv = encryptionResult.initializationVector
             existingUser.created = user.created
             existingUser.lastUpdated = currentDateTime
             user.copy(
@@ -63,12 +71,20 @@ class UserRepositoryImpl : UserRepository {
     }
 }
 
-fun UserEntity.toUser() = User(
-    userId = this.userId,
-    firstName = this.firstName,
-    lastName = this.lastName,
-    birthdate = this.birthdate,
-    password = this.password, created = this.created.truncatedTo(ChronoUnit.SECONDS),
-    lastUpdated = this.lastUpdated.truncatedTo(ChronoUnit.SECONDS),
-    accounts = this.accounts.map { it.toAccount() }
-)
+fun UserEntity.toUser(): User {
+    val encryptionResult = EncryptionResult(
+        secretKey = this.secretKey,
+        initializationVector = this.iv,
+        ciphterText = this.password
+    )
+    return User(
+        userId = this.userId,
+        firstName = this.firstName,
+        lastName = this.lastName,
+        birthdate = this.birthdate,
+        password = EncryptionManager.decrypt(encryptionResult),
+        created = this.created.truncatedTo(ChronoUnit.SECONDS),
+        lastUpdated = this.lastUpdated.truncatedTo(ChronoUnit.SECONDS),
+        accounts = this.accounts.map { it.toAccount() }
+    )
+}
