@@ -14,7 +14,7 @@ class TransactionController(
 
     suspend fun getExistingTransaction(call: ApplicationCall) {
         when (val result =
-            transactionService.getTransaction(userId = call.parameters["userId"], call.parameters["transactionId"])) {
+            transactionService.getTransaction(userId = call.getUserIdFromRequest(), call.parameters["transactionId"])) {
             is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
@@ -25,7 +25,7 @@ class TransactionController(
 
     suspend fun createNewTransaction(call: ApplicationCall) {
         when (val result =
-            transactionService.createTransaction(userId = call.parameters["userId"], call.receive())) {
+            transactionService.createTransaction(userId = call.getUserIdFromRequest(), call.receive())) {
             is Success -> call.respond(HttpStatusCode.Created, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)

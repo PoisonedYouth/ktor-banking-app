@@ -22,16 +22,16 @@ fun Application.configureRouting() {
     routing {
         route("/api/user") {
             authenticate("userAuthentication") {
-                get("/{userId}") {
+                get("") {
                     userController.getExistingUser(call)
                 }
                 put("") {
                     userController.updateExistingUser(call)
                 }
-                delete("/{userId}") {
+                delete("") {
                     userController.deleteUser(call)
                 }
-                put("/{userId}/password") {
+                put("/password") {
                     userController.updatePassword(call)
                 }
             }
@@ -39,7 +39,7 @@ fun Application.configureRouting() {
                 userController.createNewUser(call)
             }
         }
-        route("/api/user/{userId}/account") {
+        route("/api/account") {
             authenticate("userAuthentication") {
                 get("/{accountId}") {
                     accountController.getExistingAccount(call)
@@ -55,7 +55,7 @@ fun Application.configureRouting() {
                 }
             }
         }
-        route("/api/user/{userId}/transaction") {
+        route("/api/transaction") {
             authenticate("userAuthentication") {
                 get("/{transactionId}") {
                     transactionController.getExistingTransaction(call)

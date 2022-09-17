@@ -92,7 +92,7 @@ internal class TransactionControllerTest : KoinTest {
 
         // when
         val response = client.get(
-            "http://localhost:8080//api/user/${user.userId}/transaction/" +
+            "http://localhost:8080/api/transaction/" +
                 "${persistedTransaction.transactionId}"
         ) {
             accept(ContentType.Application.Json)
@@ -154,7 +154,7 @@ internal class TransactionControllerTest : KoinTest {
 
         // when
         val response = client.get(
-            "http://localhost:8080//api/user/${user.userId}/transaction/" +
+            "http://localhost:8080/api/transaction/" +
                 "INVALD_TRANSACTIONID"
         ) {
             accept(ContentType.Application.Json)
@@ -206,7 +206,7 @@ internal class TransactionControllerTest : KoinTest {
 
         // when
         val response = client.post(
-            "http://localhost:8080//api/user/${user.userId}/transaction"
+            "http://localhost:8080/api/transaction"
         ) {
             setBody(
                 TransactionDto(
@@ -261,7 +261,7 @@ internal class TransactionControllerTest : KoinTest {
 
         // when
         val response = client.post(
-            "http://localhost:8080//api/user/${user.userId}/transaction"
+            "http://localhost:8080/api/transaction"
         ) {
             setBody(
                 TransactionDto(
@@ -326,7 +326,7 @@ internal class TransactionControllerTest : KoinTest {
 
         // when
         val response = client.delete(
-            "http://localhost:8080//api/administrator/transaction/${persistedTransaction.transactionId}"
+            "http://localhost:8080/api/administrator/transaction/${persistedTransaction.transactionId}"
         ) {
             accept(ContentType.Application.Json)
         }
@@ -384,7 +384,7 @@ internal class TransactionControllerTest : KoinTest {
 
         // when
         val response = client.delete(
-            "http://localhost:8080//api/administrator/transaction/${persistedTransaction.transactionId}"
+            "http://localhost:8080/api/administrator/transaction/${persistedTransaction.transactionId}"
         ) {
             accept(ContentType.Application.Json)
         }
@@ -443,7 +443,7 @@ internal class TransactionControllerTest : KoinTest {
 
         // when
         val response = client.delete(
-            "http://localhost:8080//api/administrator/transaction/${transaction.transactionId}"
+            "http://localhost:8080/api/administrator/transaction/${transaction.transactionId}"
         ) {
             accept(ContentType.Application.Json)
         }
@@ -508,7 +508,7 @@ internal class TransactionControllerTest : KoinTest {
 
         // when
         val response = client.get(
-            "http://localhost:8080//api/administrator/transaction"
+            "http://localhost:8080/api/administrator/transaction"
         ) {
             accept(ContentType.Application.Json)
         }

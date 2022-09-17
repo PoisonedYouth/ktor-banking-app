@@ -26,20 +26,20 @@ fun Application.configureSecurity() {
 
     install(StatusPages) {
         status(HttpStatusCode.Unauthorized) { call, _ ->
-            if (call.request.path().startsWith("/api/user")) {
+            if (call.request.path().startsWith("/api/administrator")) {
                 call.respond(
                     HttpStatusCode.Unauthorized,
                     ApiResult.Failure(
-                        ErrorCode.USER_NOT_FOUND,
-                        "Authentication for user with userId '${call.request.basicAuthenticationCredentials()?.name}' failed."
+                        ErrorCode.ADMINISTRATOR_NOT_FOUND,
+                        "Authentication for administrator with administratorId '${call.request.basicAuthenticationCredentials()?.name}' failed."
                     )
                 )
             } else {
                 call.respond(
                     HttpStatusCode.Unauthorized,
                     ApiResult.Failure(
-                        ErrorCode.ADMINISTRATOR_NOT_FOUND,
-                        "Authentication for administrator with administratorId '${call.request.basicAuthenticationCredentials()?.name}' failed."
+                        ErrorCode.USER_NOT_FOUND,
+                        "Authentication for user with userId '${call.request.basicAuthenticationCredentials()?.name}' failed."
                     )
                 )
             }

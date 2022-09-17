@@ -13,7 +13,10 @@ class AccountController(
 ) {
     suspend fun getExistingAccount(call: ApplicationCall) {
         when (val result =
-            accountService.findByUserIdAndAccountId(userId = call.parameters["userId"], call.parameters["accountId"])) {
+            accountService.findByUserIdAndAccountId(
+                userId = call.getUserIdFromRequest(),
+                call.parameters["accountId"]
+            )) {
             is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
@@ -24,7 +27,7 @@ class AccountController(
 
     suspend fun createNewAccount(call: ApplicationCall) {
         when (val result =
-            accountService.createAccount(userId = call.parameters["userId"], call.receive())) {
+            accountService.createAccount(userId = call.getUserIdFromRequest(), call.receive())) {
             is Success -> call.respond(HttpStatusCode.Created, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
@@ -38,7 +41,7 @@ class AccountController(
 
     suspend fun updateExistingAccount(call: ApplicationCall) {
         when (val result =
-            accountService.updateAccount(userId = call.parameters["userId"], call.receive())) {
+            accountService.updateAccount(userId = call.getUserIdFromRequest(), call.receive())) {
             is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
@@ -49,9 +52,10 @@ class AccountController(
             }
         }
     }
+
     suspend fun deleteAccount(call: ApplicationCall) {
         when (val result =
-            accountService.deleteAccount(userId = call.parameters["userId"], call.parameters["accountId"])) {
+            accountService.deleteAccount(userId = call.getUserIdFromRequest(), call.parameters["accountId"])) {
             is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)

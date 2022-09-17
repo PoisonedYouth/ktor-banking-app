@@ -5,6 +5,8 @@ import com.poisonedyouth.application.ApiResult.Success
 import com.poisonedyouth.application.UserService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.UserIdPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 
@@ -22,7 +24,7 @@ class UserController(
     }
 
     suspend fun getExistingUser(call: ApplicationCall) {
-        when (val result = userService.findUserByUserId(call.parameters["userId"])) {
+        when (val result = userService.findUserByUserId(call.getUserIdFromRequest())) {
             is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
@@ -45,7 +47,7 @@ class UserController(
     }
 
     suspend fun deleteUser(call: ApplicationCall) {
-        when (val result = userService.deleteUser(call.parameters["userId"])) {
+        when (val result = userService.deleteUser(call.getUserIdFromRequest())) {
             is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
@@ -73,4 +75,8 @@ class UserController(
             }
         }
     }
+}
+
+fun ApplicationCall.getUserIdFromRequest() : String {
+    return this.principal<UserIdPrincipal>()?.name ?: ""
 }

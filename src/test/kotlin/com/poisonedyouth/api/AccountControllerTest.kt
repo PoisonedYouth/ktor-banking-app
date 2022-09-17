@@ -73,7 +73,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.get("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
+        val response = client.get("http://localhost:8080/api/account/${account.accountId}") {
             accept(ContentType.Application.Json)
         }
 
@@ -125,7 +125,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.get("http://localhost:8080/api/user/${user.userId}/account/invalid_accountId") {
+        val response = client.get("http://localhost:8080/api/account/invalid_accountId") {
             accept(ContentType.Application.Json)
         }
 
@@ -152,7 +152,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.post("http://localhost:8080/api/user/${user.userId}/account") {
+        val response = client.post("http://localhost:8080/api/account") {
             setBody(
                 AccountDto(
                     name = "My Account",
@@ -183,7 +183,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.post("http://localhost:8080/api/user/${user.userId}/account") {
+        val response = client.post("http://localhost:8080/api/account") {
             setBody(
                 AccountDto(
                     name = "My Account",
@@ -222,7 +222,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.put("http://localhost:8080/api/user/${user.userId}/account") {
+        val response = client.put("http://localhost:8080/api/account") {
             setBody(
                 AccountDto(
                     accountId = account.accountId,
@@ -267,7 +267,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.put("http://localhost:8080/api/user/${user.userId}/account") {
+        val response = client.put("http://localhost:8080/api/account") {
             setBody(
                 AccountDto(
                     accountId = account.accountId,
@@ -312,7 +312,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
+        val response = client.delete("http://localhost:8080/api/account/${account.accountId}") {
             contentType(ContentType.Application.Json)
         }
 
@@ -346,7 +346,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
+        val response = client.delete("http://localhost:8080/api/account/${account.accountId}") {
             contentType(ContentType.Application.Json)
         }
 
@@ -383,7 +383,7 @@ internal class AccountControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = "wrong password")
 
         // when
-        val response = client.delete("http://localhost:8080/api/user/${user.userId}/account/${account.accountId}") {
+        val response = client.delete("http://localhost:8080/api/account/${account.accountId}") {
             contentType(ContentType.Application.Json)
         }
 

@@ -109,7 +109,7 @@ internal class UserControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.get("http://localhost:8080/api/user/${user.userId}") {
+        val response = client.get("http://localhost:8080/api/user") {
             accept(ContentType.Application.Json)
         }
 
@@ -136,18 +136,18 @@ internal class UserControllerTest : KoinTest {
                 password = "Ta1&tudol3lal54e"
             )
         )
-        val client = createHttpClient(userId = user.userId.toString(), password = user.password)
+        val client = createHttpClient(userId = "invalid_userId", password = user.password)
 
         // when
-        val response = client.get("http://localhost:8080/api/user/invalid_userId") {
+        val response = client.get("http://localhost:8080/api/user") {
             accept(ContentType.Application.Json)
         }
 
         // then
-        assertThat(response.status).isEqualTo(HttpStatusCode.BadRequest)
+        assertThat(response.status).isEqualTo(HttpStatusCode.Unauthorized)
         val result = response.body<ErrorDto>()
-        assertThat(result.errorMessage).isEqualTo("Given userId 'invalid_userId' is not valid.")
-        assertThat(result.errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+        assertThat(result.errorMessage).isEqualTo("Authentication for user with userId 'invalid_userId' failed.")
+        assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
     }
 
     @Test
@@ -238,7 +238,7 @@ internal class UserControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.delete("http://localhost:8080/api/user/${user.userId}") {
+        val response = client.delete("http://localhost:8080/api/user") {
             contentType(ContentType.Application.Json)
         }
 
@@ -265,7 +265,7 @@ internal class UserControllerTest : KoinTest {
         val client = createHttpClient(userId = userId.toString(), password = user.password)
 
         // when
-        val response = client.delete("http://localhost:8080/api/user/${userId}") {
+        val response = client.delete("http://localhost:8080/api/user") {
             contentType(ContentType.Application.Json)
         }
 
@@ -293,7 +293,7 @@ internal class UserControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.put("http://localhost:8080/api/user/${user.userId}/password") {
+        val response = client.put("http://localhost:8080/api/user/password") {
             setBody(
                 UserPasswordChangeDto(
                     userId = user.userId,
@@ -325,7 +325,7 @@ internal class UserControllerTest : KoinTest {
         val client = createHttpClient(userId = user.userId.toString(), password = user.password)
 
         // when
-        val response = client.put("http://localhost:8080/api/user/${user.userId}/password") {
+        val response = client.put("http://localhost:8080/api/user/password") {
             setBody(
                 UserPasswordChangeDto(
                     userId = user.userId,
