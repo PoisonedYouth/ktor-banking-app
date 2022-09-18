@@ -167,7 +167,6 @@ internal class UserControllerTest : KoinTest {
         val response = client.put("http://localhost:8080/api/user") {
             setBody(
                 UserDto(
-                    userId = user.userId,
                     firstName = "John",
                     lastName = "Doe",
                     birthdate = "01.01.2000",
@@ -202,7 +201,6 @@ internal class UserControllerTest : KoinTest {
         val response = client.put("http://localhost:8080/api/user") {
             setBody(
                 UserDto(
-                    userId = userId,
                     firstName = "John",
                     lastName = "Doe",
                     birthdate = "01.01.2000",
