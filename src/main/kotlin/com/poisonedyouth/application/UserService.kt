@@ -192,6 +192,14 @@ class UserServiceImpl(
     override fun updatePassword(userPasswordChangeDto: UserPasswordChangeDto): ApiResult<UUID> {
         logger.info("Start updating password for user with userId '${userPasswordChangeDto.userId}'.")
         return try {
+            val userId = userPasswordChangeDto.userId
+            if (userId == null) {
+                logger.error("No userId specified for updatePassword.")
+                return ApiResult.Failure(
+                    ErrorCode.MAPPING_ERROR,
+                    "No userId specified for updatePassword."
+                )
+            }
             val existingUser = userRepository.findByUserId(userPasswordChangeDto.userId)
             if (existingUser == null) {
                 logger.error("User with userId '${userPasswordChangeDto.userId}' does not exist in database.")

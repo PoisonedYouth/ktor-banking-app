@@ -21,7 +21,7 @@ data class UserOverviewDto(
 )
 
 data class UserPasswordChangeDto(
-    val userId: UUID,
+    val userId: UUID? = null,
     val existingPassword: String,
     val newPassword: String
 )

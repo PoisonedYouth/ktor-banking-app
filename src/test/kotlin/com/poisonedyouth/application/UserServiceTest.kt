@@ -461,6 +461,32 @@ internal class UserServiceTest : KoinTest {
     }
 
     @Test
+    fun `updatePassword fails for missing userId`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        userRepository.save(user)
+
+        val userPasswordChangeDto = UserPasswordChangeDto(
+            userId = null,
+            existingPassword = user.password,
+            newPassword = "Ta1&zuxcv3lal54e"
+        )
+
+        // when
+        val actual = userService.updatePassword(userPasswordChangeDto)
+
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+    }
+
+    @Test
     fun `updatePassword fails if existing password and new password are equal`() {
         // given
         val user = User(
