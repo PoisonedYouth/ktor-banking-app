@@ -1,0 +1,549 @@
+{
+	"info": {
+		"_postman_id": "31a3a08d-501a-4e16-9b5f-edfed73d8f42",
+		"name": "KtorBankingApp",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7166251"
+	},
+	"item": [
+		{
+			"name": "Update User",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\",\r\n    \"birthdate\": \"01.01.1999\",\r\n    \"password\": \"Ta1&tudol3lal54e\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Existing User",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create New User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\",\r\n    \"birthdate\": \"01.01.1999\",\r\n    \"password\": \"Ta1&tudol3lal54e\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Password",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"existingPassword\" : \"Ta1&tudol3lal54e\",\r\n    \"newPassword\" : \"Va1&tudol3lal54e\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/user/password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"user",
+						"password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Existing User",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Va1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create New Account",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\" :\"My Other Account\",\r\n    \"dispo\" : \"-200.0\",\r\n    \"limit\" : \"100.0\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/account",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"account"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Existing Account",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/account/71edfa80-f0a3-4c06-bd53-fb285dee2dc1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"account",
+						"71edfa80-f0a3-4c06-bd53-fb285dee2dc1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Account",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"accountId\" : \"9d241412-f0ce-49ea-a940-d6479333b95e\",\r\n    \"name\" :\"My Other Account\",\r\n    \"dispo\" : \"200.0\",\r\n    \"limit\" : \"100.0\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/account",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"account"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Existing Account",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/account/71edfa80-f0a3-4c06-bd53-fb285dee2dc1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"account",
+						"71edfa80-f0a3-4c06-bd53-fb285dee2dc1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create New Transaction",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"origin\" : \"9d241412-f0ce-49ea-a940-d6479333b95e\",\r\n    \"target\" : \"b765146c-21e7-4c18-ac48-e608872ebd9e\",\r\n    \"amount\" : 50.0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/transaction",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Existing Transaction",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "9bbf2403-2e3d-4b36-955b-ee908fe02184",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/transaction/558a9b99-c50b-4fde-bd2a-7814e84c0b4d",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"transaction",
+						"558a9b99-c50b-4fde-bd2a-7814e84c0b4d"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Administrator: Get All Transactions",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "bdf79db3-1dfb-4ce2-b539-51de0cc703ee",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/administrator/transaction",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"administrator",
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Administrator: Reset User Password",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "bdf79db3-1dfb-4ce2-b539-51de0cc703ee",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/administrator/user/267ed00a-8e7a-479a-a2dd-028eab2bfd98/password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"administrator",
+						"user",
+						"267ed00a-8e7a-479a-a2dd-028eab2bfd98",
+						"password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Administrator: Delete Existing Transaction",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "bdf79db3-1dfb-4ce2-b539-51de0cc703ee",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "Ta1&tudol3lal54e",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/administrator/transaction/558a9b99-c50b-4fde-bd2a-7814e84c0b4d",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"administrator",
+						"transaction",
+						"558a9b99-c50b-4fde-bd2a-7814e84c0b4d"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

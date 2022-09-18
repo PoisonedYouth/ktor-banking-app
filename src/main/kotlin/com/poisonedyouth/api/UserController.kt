@@ -3,6 +3,7 @@ package com.poisonedyouth.api
 import com.poisonedyouth.application.ApiResult.Failure
 import com.poisonedyouth.application.ApiResult.Success
 import com.poisonedyouth.application.UserDto
+import com.poisonedyouth.application.UserPasswordChangeDto
 import com.poisonedyouth.application.UserService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -64,7 +65,12 @@ class UserController(
     }
 
     suspend fun updatePassword(call: ApplicationCall) {
-        when (val result = userService.updatePassword(call.receive())) {
+        val userPasswordChangeDto = call.receive<UserPasswordChangeDto>()
+        when (val result = userService.updatePassword(
+            userPasswordChangeDto.copy(
+                userId = UUID.fromString(call.getUserIdFromRequest())
+            )
+        )) {
             is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
             is Failure -> {
                 val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
