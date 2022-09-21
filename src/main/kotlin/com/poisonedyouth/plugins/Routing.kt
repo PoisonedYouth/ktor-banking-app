@@ -76,6 +76,9 @@ fun Application.configureRouting() {
                 get("/transaction") {
                     transactionController.getAllExistingTransaction(call)
                 }
+                get("/user") {
+                    userController.getAllUSer(call)
+                }
             }
         }
     }

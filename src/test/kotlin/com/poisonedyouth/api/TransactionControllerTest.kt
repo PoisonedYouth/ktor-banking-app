@@ -48,7 +48,7 @@ internal class TransactionControllerTest : KoinTest {
     }
 
     @Test
-    fun getExistingTransaction() = runBlocking<Unit> {
+    fun getExistingTransaction() = runBlocking {
         // given
         val user = User(
             firstName = "John",

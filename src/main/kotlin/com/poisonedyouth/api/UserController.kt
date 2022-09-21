@@ -88,6 +88,16 @@ class UserController(
             }
         }
     }
+
+    suspend fun getAllUSer(call: ApplicationCall) {
+        when (val result = userService.getAllUser()) {
+            is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(httpStatusCode, ErrorDto(errorCode = result.errorCode, errorMessage = result.errorMessage))
+            }
+        }
+    }
 }
 
 fun ApplicationCall.getUserIdFromRequest(): String {

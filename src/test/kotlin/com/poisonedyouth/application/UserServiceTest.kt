@@ -569,7 +569,8 @@ internal class UserServiceTest : KoinTest {
         val persistedUser = userRepository.save(user)
 
         // when
-        val actual = userService.isValidUser(userId = persistedUser.userId.toString(), password = persistedUser.password)
+        val actual =
+            userService.isValidUser(userId = persistedUser.userId.toString(), password = persistedUser.password)
 
 
         // then
@@ -634,5 +635,35 @@ internal class UserServiceTest : KoinTest {
         // then
         assertThat(actual).isInstanceOf(Failure::class.java)
         assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.NOT_ALLOWED)
+    }
+
+    @Test
+    fun `getAllUser is possible`() {
+        // given
+        val user1 = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser1 = userRepository.save(user1)
+
+        val user2 = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser2 = userRepository.save(user2)
+
+        // when
+        val actual = userService.getAllUser()
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        assertThat((actual as Success).value.map { it.userId }).containsExactlyInAnyOrder(
+            persistedUser1.userId,
+            persistedUser2.userId
+        )
     }
 }

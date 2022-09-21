@@ -14,6 +14,8 @@ interface UserRepository {
     fun delete(user: User)
 
     fun findByUserId(userId: UUID): User?
+
+    fun findAll(): List<User>
 }
 
 class UserRepositoryImpl : UserRepository {
@@ -68,6 +70,10 @@ class UserRepositoryImpl : UserRepository {
 
     override fun findByUserId(userId: UUID): User? = transaction {
         UserEntity.find { UserTable.userId eq userId }.firstOrNull()?.toUser()
+    }
+
+    override fun findAll(): List<User> = transaction {
+        UserEntity.all().map { it.toUser() }
     }
 }
 

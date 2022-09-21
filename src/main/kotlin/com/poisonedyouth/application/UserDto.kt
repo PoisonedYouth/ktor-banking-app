@@ -9,6 +9,14 @@ data class UserDto(
     val birthdate: String,
     val password: String
 )
+
+data class UserDtoAdministrator(
+    val userId: UUID? = null,
+    val firstName: String,
+    val lastName: String,
+    val birthdate: String,
+)
+
 data class UserOverviewDto(
     val userId: UUID? = null,
     val firstName: String,

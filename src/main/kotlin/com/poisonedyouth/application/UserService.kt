@@ -23,9 +23,11 @@ interface UserService {
     fun findUserByUserId(userId: String?): ApiResult<UserOverviewDto>
 
     fun isValidUser(userId: String?, password: String): ApiResult<Boolean>
+
+    fun getAllUser(): ApiResult<List<UserDtoAdministrator>>
 }
 
-private const val BIRTH_DATE_FORMAT = "dd.MM.yyyy"
+const val BIRTH_DATE_FORMAT = "dd.MM.yyyy"
 const val TIME_STAMP_FORMAT = "dd.MM.yyyy HH:mm:ss"
 
 class UserServiceImpl(
@@ -165,6 +167,13 @@ class UserServiceImpl(
         }
     }
 
+    private fun User.toUserDtoAdministrator() = UserDtoAdministrator(
+        userId = this.userId,
+        firstName = this.firstName,
+        lastName = this.lastName,
+        birthdate = this.birthdate.format(DateTimeFormatter.ofPattern(BIRTH_DATE_FORMAT)),
+    )
+
     private fun User.toUserOverviewDto() = UserOverviewDto(
         userId = this.userId,
         firstName = this.firstName,
@@ -301,6 +310,22 @@ class UserServiceImpl(
                 e
             )
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
+        }
+    }
+
+    override fun getAllUser(): ApiResult<List<UserDtoAdministrator>> {
+        logger.info("Start finding all user.")
+        return try {
+            val result = userRepository.findAll().map { it.toUserDtoAdministrator() }
+            logger.info("Successfully found all user.")
+            ApiResult.Success(result)
+        } catch (e: Exception) {
+            logger.error("Unable to load user from database.'", e)
+            ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                e.getErrorMessage()
+            )
+
         }
     }
 }

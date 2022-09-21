@@ -219,4 +219,37 @@ internal class UserRepositoryTest : KoinTest {
             assertThat(this.accounts).isEmpty()
         }
     }
+
+    @Test
+    fun `findAll returns matching user`() {
+        // given
+        val user1 = User(
+            userId = UUID.randomUUID(),
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            created = LocalDateTime.of(2022, 1, 1, 1, 0, 0),
+            lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
+            accounts = listOf()
+        )
+        val userNew1 = userRepository.save(user1)
+        val user2 = User(
+            userId = UUID.randomUUID(),
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 1),
+            password = "Ta1&tudol3lal54e",
+            created = LocalDateTime.of(2022, 1, 1, 1, 0, 0),
+            lastUpdated = LocalDateTime.of(2022, 1, 2, 1, 0, 0),
+            accounts = listOf()
+        )
+        val userNew2 = userRepository.save(user2)
+
+        // when
+        val actual = userRepository.findAll()
+
+        // then
+        assertThat(actual.map { it.userId }).containsExactlyInAnyOrder(user1.userId, user2.userId)
+    }
 }

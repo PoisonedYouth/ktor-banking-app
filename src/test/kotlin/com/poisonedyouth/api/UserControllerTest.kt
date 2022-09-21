@@ -1,8 +1,10 @@
 package com.poisonedyouth.api
 
 import com.poisonedyouth.KtorServerExtension
+import com.poisonedyouth.application.BIRTH_DATE_FORMAT
 import com.poisonedyouth.application.ErrorCode
 import com.poisonedyouth.application.UserDto
+import com.poisonedyouth.application.UserDtoAdministrator
 import com.poisonedyouth.application.UserOverviewDto
 import com.poisonedyouth.application.UserPasswordChangeDto
 import com.poisonedyouth.createHttpClient
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @ExtendWith(KtorServerExtension::class)
@@ -389,5 +392,60 @@ internal class UserControllerTest : KoinTest {
         val result = response.body<ErrorDto>()
         assertThat(result.errorMessage).isEqualTo("User with userId '${user.userId}' does not exist in database.")
         assertThat(result.errorCode).isEqualTo(ErrorCode.USER_NOT_FOUND)
+    }
+
+    @Test
+    fun getAllUser() = runBlocking<Unit> {
+        // given
+        val user1 = userRepository.save(
+            User(
+                firstName = "John",
+                lastName = "Doe",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+        val user2 = userRepository.save(
+            User(
+                firstName = "Max",
+                lastName = "DeMarco",
+                birthdate = LocalDate.of(1999, 1, 1),
+                password = "Ta1&tudol3lal54e"
+            )
+        )
+
+        val client = createHttpClient(userId = "bdf79db3-1dfb-4ce2-b539-51de0cc703ee", password = "Ta1&tudol3lal54e")
+
+        // when
+        val response = client.get("http://localhost:8080/api/administrator/user") {
+            accept(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val result = response.body<SuccessDto<List<UserDtoAdministrator>>>()
+        result.run {
+            assertThat(this.value[0].userId).isEqualTo(user1.userId)
+            assertThat(this.value[0].firstName).isEqualTo(user1.firstName)
+            assertThat(this.value[0].lastName).isEqualTo(user1.lastName)
+            assertThat(this.value[0].birthdate).isEqualTo(
+                user1.birthdate.format(
+                    DateTimeFormatter.ofPattern(
+                        BIRTH_DATE_FORMAT
+                    )
+                )
+            )
+
+            assertThat(this.value[1].userId).isEqualTo(user2.userId)
+            assertThat(this.value[1].firstName).isEqualTo(user2.firstName)
+            assertThat(this.value[1].lastName).isEqualTo(user2.lastName)
+            assertThat(this.value[1].birthdate).isEqualTo(
+                user2.birthdate.format(
+                    DateTimeFormatter.ofPattern(
+                        BIRTH_DATE_FORMAT
+                    )
+                )
+            )
+        }
     }
 }
