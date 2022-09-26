@@ -5,6 +5,7 @@ import com.poisonedyouth.dependencyinjection.setupKoin
 import com.poisonedyouth.persistence.checkDatabaseDefaults
 import com.poisonedyouth.persistence.migrateDatabaseSchema
 import com.poisonedyouth.persistence.setupDatabase
+import com.poisonedyouth.plugins.configureCors
 import com.poisonedyouth.plugins.configureRouting
 import com.poisonedyouth.plugins.configureSecurity
 import com.poisonedyouth.plugins.configureSerialization
@@ -26,4 +27,5 @@ fun Application.module() {
     configureSerialization()
     configureSecurity()
     configureRouting()
+    configureCors()
 }
