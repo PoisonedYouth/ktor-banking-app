@@ -89,7 +89,7 @@ class UserController(
         }
     }
 
-    suspend fun getAllUSer(call: ApplicationCall) {
+    suspend fun getAllUser(call: ApplicationCall) {
         when (val result = userService.getAllUser()) {
             is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
             is Failure -> {

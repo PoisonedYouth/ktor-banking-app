@@ -528,4 +528,79 @@ internal class TransactionControllerTest : KoinTest {
             assertThat(this[1].amount).isEqualTo(persistedOtherTransaction.amount)
         }
     }
+
+    @Test
+    fun getAllTransactionsForAccount() = runBlocking<Unit> {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 200.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val thirdAccount = Account(
+            name = "Third Account",
+            dispo = -100.0,
+            limit = 100.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = thirdAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+        val persistedTransaction = transactionRepository.save(transaction)
+
+        val otherTransaction = Transaction(
+            origin = otherAccount,
+            target = thirdAccount,
+            amount = 60.0
+        )
+        transactionRepository.save(otherTransaction)
+
+        val client = createHttpClient(userId = persistedUser.userId.toString(), password = persistedUser.password)
+
+        // when
+        val response = client.get(
+            "http://localhost:8080/api/account//${account.accountId}/transaction"
+        ) {
+            accept(ContentType.Application.Json)
+        }
+
+        // then
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val result = response.body<SuccessDto<List<TransactionDto>>>()
+        result.value.run {
+            assertThat(this[0].transactionId).isEqualTo(persistedTransaction.transactionId)
+            assertThat(this[0].origin).isEqualTo(persistedTransaction.origin.accountId)
+            assertThat(this[0].target).isEqualTo(persistedTransaction.target.accountId)
+            assertThat(this[0].amount).isEqualTo(persistedTransaction.amount)
+        }
+    }
 }

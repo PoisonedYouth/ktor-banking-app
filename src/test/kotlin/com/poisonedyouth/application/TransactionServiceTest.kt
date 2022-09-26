@@ -964,4 +964,109 @@ internal class TransactionServiceTest : KoinTest {
         }
     }
 
+    @Test
+    fun `getAllTransactionByAccount is possible`() {
+        // given
+        val user = User(
+            firstName = "John",
+            lastName = "Doe",
+            birthdate = LocalDate.of(1999, 1, 1),
+            password = "Ta1&tudol3lal54e"
+        )
+        val persistedUser = userRepository.save(user)
+
+        val account = Account(
+            name = "My Account",
+            dispo = 200.0,
+            limit = 100.0,
+            balance = 100.0
+        )
+        accountRepository.saveForUser(user = persistedUser, account = account)
+
+        val otherUser = User(
+            firstName = "Max",
+            lastName = "DeMarco",
+            birthdate = LocalDate.of(2000, 1, 7),
+            password = "Ta1&tudol3lal54e"
+        )
+        val otherPersistedUser = userRepository.save(otherUser)
+
+
+        val otherAccount = Account(
+            name = "Other Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = otherAccount)
+
+        val thirdAccount = Account(
+            name = "Third Account",
+            dispo = -100.0,
+            limit = 100.0,
+            balance = 0.0
+        )
+        accountRepository.saveForUser(user = otherPersistedUser, account = thirdAccount)
+
+        val transaction = Transaction(
+            origin = account,
+            target = otherAccount,
+            amount = 100.0
+        )
+
+        val persistedTransaction =
+            transactionRepository.save(transaction)
+
+        val otherTransaction = Transaction(
+            origin = otherAccount,
+            target = thirdAccount,
+            amount = 60.0
+        )
+
+        val persistedOtherTransaction =
+            transactionRepository.save(otherTransaction)
+
+        // when
+        val actual = transactionService.getAllTransactionByAccount(account.accountId.toString())
+
+        // then
+        assertThat(actual).isInstanceOf(Success::class.java)
+        (actual as Success).value.run {
+            assertThat(this).hasSize(1)
+            assertThat(this[0].transactionId).isEqualTo(persistedTransaction.transactionId)
+            assertThat(this[0].origin).isEqualTo(persistedTransaction.origin.accountId)
+            assertThat(this[0].target).isEqualTo(persistedTransaction.target.accountId)
+            assertThat(this[0].amount).isEqualTo(persistedTransaction.amount)
+        }
+    }
+
+    @Test
+    fun `getAllTransactionByAccount fails if accountId is invalid`() {
+        // given
+        val accountId = "INVALID_ACCOUNTID"
+
+
+        // when
+        val actual = transactionService.getAllTransactionByAccount(accountId)
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.MAPPING_ERROR)
+
+    }
+
+    @Test
+    fun `getAllTransactionByAccount fails if account does not exist`() {
+        // given
+        val accountId = UUID.randomUUID().toString()
+
+
+        // when
+        val actual = transactionService.getAllTransactionByAccount(accountId)
+
+        // then
+        assertThat(actual).isInstanceOf(Failure::class.java)
+        assertThat((actual as Failure).errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+
+    }
 }

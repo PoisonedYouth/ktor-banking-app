@@ -55,4 +55,15 @@ class TransactionController(
             }
         }
     }
+
+    suspend fun getAllTransactionsForAccount(call: ApplicationCall) {
+        when (val result =
+            transactionService.getAllTransactionByAccount(call.parameters["accountId"])) {
+            is Success -> call.respond(HttpStatusCode.OK, SuccessDto(result.value))
+            is Failure -> {
+                val httpStatusCode = getHttpStatusCodeFromErrorCode(result)
+                call.respond(httpStatusCode, ErrorDto(errorCode = result.errorCode, errorMessage = result.errorMessage))
+            }
+        }
+    }
 }

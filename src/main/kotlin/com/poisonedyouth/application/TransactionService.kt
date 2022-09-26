@@ -15,6 +15,7 @@ interface TransactionService {
     fun getTransaction(userId: String?, transactionId: String?): ApiResult<TransactionDto>
     fun deleteTransaction(transactionId: String?): ApiResult<UUID>
     fun getAllTransactions(): ApiResult<List<TransactionDto>>
+    fun getAllTransactionByAccount(accountId: String?): ApiResult<List<TransactionDto>>
 }
 
 class TransactionServiceImpl(
@@ -195,6 +196,36 @@ class TransactionServiceImpl(
         logger.info("Start loading all transactions.")
         return try {
             ApiResult.Success(transactionRepository.findAll().map { it.toTransactionDto() })
+        } catch (e: Exception) {
+            logger.error("Cannot load transactions from database.", e)
+            ApiResult.Failure(
+                ErrorCode.DATABASE_ERROR,
+                "Cannot load transactions from database."
+            )
+        }
+    }
+
+    override fun getAllTransactionByAccount(accountId: String?): ApiResult<List<TransactionDto>> {
+        logger.info("Start loading transactions for account with accountId '$accountId'.")
+        return try {
+            val accountIdResolved = UUID.fromString(accountId)
+            val existingAccount = accountRepository.findByAccountId(accountIdResolved)
+            if (existingAccount == null) {
+                logger.error("Account with accountId '$accountId' does not exist in database.")
+                return ApiResult.Failure(
+                    ErrorCode.ACCOUNT_NOT_FOUND,
+                    "User with userId '$accountId' does not exist in database."
+                )
+            }
+            return ApiResult.Success(transactionRepository.findAllByAccount(existingAccount).map {
+                it.toTransactionDto()
+            })
+        } catch (e: IllegalArgumentException) {
+            logger.error("Given accountId '$accountId'Id is not valid.", e)
+            return ApiResult.Failure(
+                ErrorCode.MAPPING_ERROR,
+                "Given accountId '$accountId'Id is not valid."
+            )
         } catch (e: Exception) {
             logger.error("Cannot load transactions from database.", e)
             ApiResult.Failure(

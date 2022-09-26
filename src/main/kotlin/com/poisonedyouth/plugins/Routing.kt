@@ -53,6 +53,9 @@ fun Application.configureRouting() {
                 delete("/{accountId}") {
                     accountController.deleteAccount(call)
                 }
+                get("/{accountId}/transaction") {
+                    transactionController.getAllTransactionsForAccount(call)
+                }
             }
         }
         route("/api/transaction") {
@@ -73,11 +76,11 @@ fun Application.configureRouting() {
                 put("/user/{userid}/password") {
                     userController.resetUserPassword(call)
                 }
+                get("/user") {
+                    userController.getAllUser(call)
+                }
                 get("/transaction") {
                     transactionController.getAllExistingTransaction(call)
-                }
-                get("/user") {
-                    userController.getAllUSer(call)
                 }
             }
         }
