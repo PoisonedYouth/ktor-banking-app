@@ -22,7 +22,7 @@ class AccountRepositoryImpl : AccountRepository {
     override fun saveForUser(user: User, account: Account) = transaction {
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
             ?: error("User with userId '${user.userId}' not persisted yet!")
-        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+        val currentDateTime = getCurrentDateTime()
         val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
         if (existingAccount == null) {
             AccountEntity.new {
@@ -48,37 +48,44 @@ class AccountRepositoryImpl : AccountRepository {
     override fun updateForUser(user: User, account: Account): Account = transaction {
         val existingUser = UserEntity.find { UserTable.userId eq user.userId }.firstOrNull()
             ?: error("User with userId '${user.userId}' not persisted yet!")
-        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-        val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
-            ?: error("Account with accountId '${account.accountId} not persisted yet! ")
+        val currentDateTime = getCurrentDateTime()
+        val existingAccount = findExistingAccount(account)
 
+        updateAccountForUser(existingAccount, account, currentDateTime, existingUser)
+    }
+
+    private fun updateAccountForUser(
+        existingAccount: AccountEntity,
+        account: Account,
+        currentDateTime: LocalDateTime,
+        existingUser: UserEntity?
+    ): Account {
         existingAccount.accountId = account.accountId
         existingAccount.name = account.name
         existingAccount.balance = account.balance
         existingAccount.dispo = account.dispo
         existingAccount.limit = account.limit
         existingAccount.lastUpdated = currentDateTime
-        existingAccount.userEntity = existingUser
-        account.copy(
+        if (existingUser != null) {
+            existingAccount.userEntity = existingUser
+        }
+        return account.copy(
             lastUpdated = currentDateTime
         )
     }
+
+    private fun findExistingAccount(account: Account) =
+        (AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
+            ?: error("Account with accountId '${account.accountId} not persisted yet! "))
 
     override fun updateAccount(account: Account): Account = transaction {
-        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-        val existingAccount = AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull()
-            ?: error("Account with accountId '${account.accountId} not persisted yet! ")
+        val currentDateTime = getCurrentDateTime()
+        val existingAccount = findExistingAccount(account)
 
-        existingAccount.accountId = account.accountId
-        existingAccount.name = account.name
-        existingAccount.balance = account.balance
-        existingAccount.dispo = account.dispo
-        existingAccount.limit = account.limit
-        existingAccount.lastUpdated = currentDateTime
-        account.copy(
-            lastUpdated = currentDateTime
-        )
+        updateAccountForUser(existingAccount, account, currentDateTime, null)
     }
+
+    private fun getCurrentDateTime(): LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
 
     override fun delete(account: Account) = transaction {
         AccountEntity.find { AccountTable.accountId eq account.accountId }.firstOrNull().let {

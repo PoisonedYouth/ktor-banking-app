@@ -1,6 +1,7 @@
 package com.poisonedyouth.application
 
 import com.poisonedyouth.domain.Account
+import com.poisonedyouth.domain.User
 import com.poisonedyouth.domain.notContainsAccount
 import com.poisonedyouth.persistence.AccountRepository
 import com.poisonedyouth.persistence.UserRepository
@@ -26,8 +27,7 @@ class AccountServiceImpl(
     override fun createAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start creation of account '$accountDto' for user with userId '$userId'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val user = userRepository.findByUserId(userIdResolved)
+            val user = findUserByUserId(userId)
             if (user == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -83,8 +83,7 @@ class AccountServiceImpl(
     override fun updateAccount(userId: String?, accountDto: AccountDto): ApiResult<UUID> {
         logger.info("Start update of account '$accountDto' for user with userId '$userId'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val user = userRepository.findByUserId(userIdResolved)
+            val user = findUserByUserId(userId)
             if (user == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -129,10 +128,7 @@ class AccountServiceImpl(
     override fun deleteAccount(userId: String?, accountId: String?): ApiResult<UUID> {
         logger.info("Start deleting of account with accountId '$accountId' for user with userId '${userId}'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val accountIdResolved = UUID.fromString(accountId)
-
-            val user = userRepository.findByUserId(userIdResolved)
+            val user = findUserByUserId(userId)
             if (user == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -140,6 +136,7 @@ class AccountServiceImpl(
                     "User with userId '$userId' does not exist in database."
                 )
             }
+            val accountIdResolved = UUID.fromString(accountId)
             val existingAccount = accountRepository.findByAccountId(accountIdResolved)
                 ?: return ApiResult.Failure(
                     ErrorCode.ACCOUNT_NOT_FOUND,
@@ -165,12 +162,11 @@ class AccountServiceImpl(
             )
         }
     }
-
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun findByUserIdAndAccountId(userId: String?, accountId: String?): ApiResult<AccountOverviewDto> {
         logger.info("Start finding of account with accountId '$accountId' for user with userId '${userId}'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val user = userRepository.findByUserId(userIdResolved)
+            val user = findUserByUserId(userId)
             if (user == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -178,8 +174,7 @@ class AccountServiceImpl(
                     "User with userId '$userId' does not exist in database."
                 )
             }
-            val accountIdIdResolved = UUID.fromString(accountId)
-            val existingAccount = accountRepository.findByAccountId(accountIdIdResolved)
+            val existingAccount = findAccountByAccountId(accountId)
                 ?: return ApiResult.Failure(
                     ErrorCode.ACCOUNT_NOT_FOUND,
                     "Account with accountId '$accountId' does not exist in database."
@@ -191,17 +186,7 @@ class AccountServiceImpl(
                 )
             }
             logger.info("Successfully found account with accountId '$accountId'.")
-            ApiResult.Success(
-                AccountOverviewDto(
-                    name = existingAccount.name,
-                    accountId = existingAccount.accountId,
-                    balance = existingAccount.balance,
-                    dispo = existingAccount.dispo,
-                    limit = existingAccount.limit,
-                    created = existingAccount.created.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
-                    lastUpdated = existingAccount.lastUpdated.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT))
-                )
-            )
+            createAccountOverviewDtoApiResult(existingAccount)
         } catch (e: IllegalArgumentException) {
             logger.error("Given userId '$userId' or '$accountId' is not valid.", e)
             ApiResult.Failure(ErrorCode.MAPPING_ERROR, "Given userId '$userId' or '$accountId' is not valid.")
@@ -212,5 +197,27 @@ class AccountServiceImpl(
                 "Account with accountId '${accountId}' cannot be deleted."
             )
         }
+    }
+
+    private fun createAccountOverviewDtoApiResult(existingAccount: Account) = ApiResult.Success(
+        AccountOverviewDto(
+            name = existingAccount.name,
+            accountId = existingAccount.accountId,
+            balance = existingAccount.balance,
+            dispo = existingAccount.dispo,
+            limit = existingAccount.limit,
+            created = existingAccount.created.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT)),
+            lastUpdated = existingAccount.lastUpdated.format(DateTimeFormatter.ofPattern(TIME_STAMP_FORMAT))
+        )
+    )
+
+    private fun findAccountByAccountId(accountId: String?): Account? {
+        val accountIdResolved = UUID.fromString(accountId)
+        return accountRepository.findByAccountId(accountIdResolved)
+    }
+
+    private fun findUserByUserId(userId: String?): User? {
+        val userIdResolved = UUID.fromString(userId)
+        return userRepository.findByUserId(userIdResolved)
     }
 }

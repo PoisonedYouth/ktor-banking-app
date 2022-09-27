@@ -2,17 +2,12 @@ package com.poisonedyouth.security
 
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 import java.nio.charset.StandardCharsets
-import java.security.spec.KeySpec
 
 
-
-data class EncryptionResult(
+class EncryptionResult(
     val secretKey: ByteArray,
     val initializationVector: ByteArray,
     val ciphterText: ByteArray

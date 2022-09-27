@@ -2,6 +2,7 @@ package com.poisonedyouth.application
 
 import com.poisonedyouth.domain.Account
 import com.poisonedyouth.domain.Transaction
+import com.poisonedyouth.domain.User
 import com.poisonedyouth.domain.notContainsAccount
 import com.poisonedyouth.persistence.AccountRepository
 import com.poisonedyouth.persistence.TransactionRepository
@@ -29,8 +30,7 @@ class TransactionServiceImpl(
     override fun createTransaction(userId: String?, transactionDto: TransactionDto): ApiResult<UUID> {
         logger.info("Start creation of transaction '${transactionDto}.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val existingUser = userRepository.findByUserId(userIdResolved)
+            val existingUser = findUserByUserId(userId)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -108,9 +108,7 @@ class TransactionServiceImpl(
     override fun deleteTransaction(transactionId: String?): ApiResult<UUID> {
         logger.info("Start delete of transaction with transactionId '$transactionId'.")
         return try {
-            val transactionIdResolved = UUID.fromString(transactionId)
-
-            val existingTransaction = transactionRepository.findByTransactionId(transactionIdResolved)
+            val existingTransaction = findTransactionByTransactionId(transactionId)
             if (existingTransaction == null) {
                 logger.error("Transaction with transactionId '$transactionId' does not exist in database.")
                 return ApiResult.Failure(
@@ -143,11 +141,11 @@ class TransactionServiceImpl(
         }
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun getTransaction(userId: String?, transactionId: String?): ApiResult<TransactionDto> {
         logger.info("Start finding of transaction with transactionId '$transactionId'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val existingUser = userRepository.findByUserId(userIdResolved)
+            val existingUser = findUserByUserId(userId)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -155,9 +153,7 @@ class TransactionServiceImpl(
                     "User with userId '$userId' does not exist in database."
                 )
             }
-            val transactionIdResolved = UUID.fromString(transactionId)
-
-            val existingTransaction = transactionRepository.findByTransactionId(transactionIdResolved)
+            val existingTransaction = findTransactionByTransactionId(transactionId)
             if (existingTransaction == null) {
                 logger.error("Transaction with transactionId '$transactionId' cannot be found.")
                 return ApiResult.Failure(
@@ -192,6 +188,17 @@ class TransactionServiceImpl(
         }
     }
 
+    private fun findTransactionByTransactionId(transactionId: String?): Transaction? {
+        val transactionIdResolved = UUID.fromString(transactionId)
+        return transactionRepository.findByTransactionId(transactionIdResolved)
+    }
+
+    private fun findUserByUserId(userId: String?): User? {
+        val userIdResolved = UUID.fromString(userId)
+        return userRepository.findByUserId(userIdResolved)
+    }
+
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun getAllTransactions(): ApiResult<List<TransactionDto>> {
         logger.info("Start loading all transactions.")
         return try {
@@ -205,6 +212,7 @@ class TransactionServiceImpl(
         }
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun getAllTransactionByAccount(accountId: String?): ApiResult<List<TransactionDto>> {
         logger.info("Start loading transactions for account with accountId '$accountId'.")
         return try {

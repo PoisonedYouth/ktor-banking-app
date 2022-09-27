@@ -1,5 +1,6 @@
 package com.poisonedyouth.application
 
+import com.poisonedyouth.domain.Administrator
 import com.poisonedyouth.persistence.AdministratorRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -15,11 +16,11 @@ class AdministratorServiceImpl(
 ) : AdministratorService {
     private val logger: Logger = LoggerFactory.getLogger(UserService::class.java)
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun isValidAdministrator(administratorId: String?, password: String): ApiResult<Boolean> {
         logger.info("Start checking for valid administrator with administrator '${administratorId}' and password '$password'.")
         return try {
-            val administratorIdResolved = UUID.fromString(administratorId)
-            val existingAdministrator = administratorRepository.findByAdministratorId(administratorIdResolved)
+            val existingAdministrator = findAdministratorByAdministratorId(administratorId)
             if (existingAdministrator == null) {
                 logger.error("Administrator with administratorId '$administratorId' does not exist in database.")
                 return ApiResult.Failure(
@@ -48,6 +49,11 @@ class AdministratorServiceImpl(
             )
             ApiResult.Failure(ErrorCode.DATABASE_ERROR, e.getErrorMessage())
         }
+    }
+
+    private fun findAdministratorByAdministratorId(administratorId: String?): Administrator? {
+        val administratorIdResolved = UUID.fromString(administratorId)
+        return administratorRepository.findByAdministratorId(administratorIdResolved)
     }
 
 }

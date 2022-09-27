@@ -24,12 +24,8 @@ class TransactionRepositoryImpl : TransactionRepository {
         if (existingTransaction == null) {
             TransactionEntity.new {
                 transactionId = transaction.transactionId
-                originEntity =
-                    AccountEntity.find { AccountTable.accountId eq transaction.origin.accountId }.firstOrNull()
-                        ?: error("Account '${transaction.origin.accountId}' not available in database!")
-                targetEntity =
-                    AccountEntity.find { AccountTable.accountId eq transaction.target.accountId }.firstOrNull()
-                        ?: error("Account '${transaction.target.accountId}' not available in database!")
+                originEntity = findAccountBy(transaction.origin.accountId)
+                targetEntity = findAccountBy(transaction.target.accountId)
                 amount = transaction.amount
                 created = LocalDateTime.now()
             }
@@ -40,6 +36,10 @@ class TransactionRepositoryImpl : TransactionRepository {
             error("Transactions cannot be updated!")
         }
     }
+
+    private fun findAccountBy(accountId: UUID) =
+        (AccountEntity.find { AccountTable.accountId eq accountId }.firstOrNull()
+            ?: error("Account with accountId '${accountId}' not available in database!"))
 
     override fun findAllByAccount(account: Account): List<Transaction> = transaction {
         TransactionEntity.find { TransactionTable.origin eq account.accountId or (TransactionTable.target eq account.accountId) }
@@ -53,9 +53,7 @@ class TransactionRepositoryImpl : TransactionRepository {
     override fun delete(transaction: Transaction) = transaction {
         val existingTransaction =
             TransactionEntity.find { TransactionTable.transactionId eq transaction.transactionId }.firstOrNull()
-        if (existingTransaction == null) {
-            error("Transaction with transactionId '${transaction.transactionId}' does not exist in database.")
-        }
+                ?: error("Transaction with transactionId '${transaction.transactionId}' does not exist in database.")
         existingTransaction.delete()
     }
 

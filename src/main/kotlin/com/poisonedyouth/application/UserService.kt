@@ -93,9 +93,7 @@ class UserServiceImpl(
     override fun deleteUser(userId: String?): ApiResult<UUID> {
         logger.info("Start deleting user with userId'$userId'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-
-            val existingUser = userRepository.findByUserId(userIdResolved)
+            val existingUser = findUserByUserIdString(userId)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -145,8 +143,7 @@ class UserServiceImpl(
     override fun findUserByUserId(userId: String?): ApiResult<UserOverviewDto> {
         logger.info("Start finding user with userId '$userId'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val user = userRepository.findByUserId(userIdResolved)
+            val user = findUserByUserIdString(userId)
             if (user == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 ApiResult.Failure(ErrorCode.USER_NOT_FOUND, "User with userId '$userId' does not exist in database.")
@@ -243,11 +240,11 @@ class UserServiceImpl(
         }
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun resetPassword(userId: String?): ApiResult<String> {
         logger.info("Start resetting password for user with userId '${userId}'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val existingUser = userRepository.findByUserId(userIdResolved)
+            val existingUser = findUserByUserIdString(userId)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -256,9 +253,7 @@ class UserServiceImpl(
                 )
             }
 
-            // Will be updated as soon as security is introduced
             val newPassword = PasswordManager.generatePassword()
-
             val updatedUser = existingUser.copy(
                 password = newPassword,
                 lastUpdated = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
@@ -278,11 +273,11 @@ class UserServiceImpl(
         }
     }
 
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun isValidUser(userId: String?, password: String): ApiResult<Boolean> {
         logger.info("Start checking for valid user with userId '${userId}' and password '$password'.")
         return try {
-            val userIdResolved = UUID.fromString(userId)
-            val existingUser = userRepository.findByUserId(userIdResolved)
+            val existingUser = findUserByUserIdString(userId)
             if (existingUser == null) {
                 logger.error("User with userId '$userId' does not exist in database.")
                 return ApiResult.Failure(
@@ -313,6 +308,12 @@ class UserServiceImpl(
         }
     }
 
+    private fun findUserByUserIdString(userId: String?): User? {
+        val userIdResolved = UUID.fromString(userId)
+        return userRepository.findByUserId(userIdResolved)
+    }
+
+    @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
     override fun getAllUser(): ApiResult<List<UserDtoAdministrator>> {
         logger.info("Start finding all user.")
         return try {
