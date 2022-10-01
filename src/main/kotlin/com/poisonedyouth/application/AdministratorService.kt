@@ -8,7 +8,7 @@ import java.util.*
 
 
 interface AdministratorService {
-    fun isValidAdministrator(administratorId: String?, password: String): ApiResult<Boolean>
+    fun isValidAdministrator(administratorId: String?, password: String?): ApiResult<Boolean>
 }
 
 class AdministratorServiceImpl(
@@ -17,7 +17,7 @@ class AdministratorServiceImpl(
     private val logger: Logger = LoggerFactory.getLogger(UserService::class.java)
 
     @SuppressWarnings("TooGenericExceptionCaught") // It's intended to catch all exceptions in service
-    override fun isValidAdministrator(administratorId: String?, password: String): ApiResult<Boolean> {
+    override fun isValidAdministrator(administratorId: String?, password: String?): ApiResult<Boolean> {
         logger.info("Start checking for valid administrator with administrator '${administratorId}' and password '$password'.")
         return try {
             val existingAdministrator = findAdministratorByAdministratorId(administratorId)
@@ -52,6 +52,9 @@ class AdministratorServiceImpl(
     }
 
     private fun findAdministratorByAdministratorId(administratorId: String?): Administrator? {
+        if (administratorId == null) {
+            return null
+        }
         val administratorIdResolved = UUID.fromString(administratorId)
         return administratorRepository.findByAdministratorId(administratorIdResolved)
     }

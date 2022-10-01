@@ -309,6 +309,9 @@ class UserServiceImpl(
     }
 
     private fun findUserByUserIdString(userId: String?): User? {
+        if (userId == null) {
+            return null
+        }
         val userIdResolved = UUID.fromString(userId)
         return userRepository.findByUserId(userIdResolved)
     }
