@@ -1,1 +1,3 @@
-rootProject.name = "ktor-banking-app"
+
+rootProject.name = "multiplatform-banking-app"
+
