@@ -28,7 +28,7 @@ kotlin {
             useJUnitPlatform()
         }
     }
-    js(LEGACY) {
+    js(IR) {
         binaries.executable()
         browser {
             commonWebpackConfig {
@@ -87,12 +87,22 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
+                implementation(npm("core-js", "2.6.5"))
+                implementation("org.jetbrains.kotlin:kotlin-stdlib-js")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react:18.0.0-pre.332-kotlin-1.6.21")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:18.0.0-pre.332-kotlin-1.6.21")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-emotion:11.9.0-pre.332-kotlin-1.6.21")
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions:1.0.1-1.6.21")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.6.4")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
             }
         }
-        val jsTest by getting
+        val jsTest by getting{
+            dependencies{
+                implementation(kotlin("test"))
+            }
+        }
     }
 }
 
